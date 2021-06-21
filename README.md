@@ -10,7 +10,7 @@ This repository implements a basic game where an hero controlled by a monster fi
     ```bash
     $ cmake .
     ```
-3. Build: the along with the test suite, documentation and python interface are generated automaticaly
+3. Build: the compiled code along with the test suite, documentation and python interface are generated automaticaly
     ```bash
     $ make
     ```
