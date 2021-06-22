@@ -1,0 +1,16 @@
+basic_game
+basic_game.py
+_basic_game.so
+CMakeCache.txt
+cmake-build-debug
+CMakeDoxyfile.in
+CMakeDoxygenDefaults.cmake
+CMakeFiles
+cmake_install.cmake
+CTestTestfile.cmake
+doxygen_output
+html
+latex
+Makefile
+runTests
+.idea
