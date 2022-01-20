@@ -10,7 +10,7 @@
 %include "fighter.h"
 
 %pythoncode%{
-    print("\nBASIC GAME PYTHON INTERFACE:  Main function for playing not implemented yet\n");
+    print("\nBASIC GAME PYTHON INTERFACE:  Main function for playing not implemented yet\n")
 
     if __name__ == "__main__":
         hero = Hero(); hero.SetRole(ROLE_HERO); hero.SetHealth(HEALTH_HERO)

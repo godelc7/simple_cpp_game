@@ -11,6 +11,11 @@
 #include <omp.h>
 #endif
 
+#if defined(__GNUC__) || defined(__clang__)
+    #define ATTRIBUTE_NO_DISCARD [[nodiscard]]
+#else
+    #define ATTRIBUTE_NO_DISCARD
+#endif
 
 typedef enum ROLE {
     ROLE_UNDEFINED = -1,
@@ -87,10 +92,11 @@ public:
      */
     Fighter(Fighter&& other) noexcept;
 
+    //TODO @ Kamdoum: make the destructor pure virtual (~Fighter()=0), so this class can really be an abstract class
     /**
      * @brief The destructor
      */
-    ~Fighter()=default;
+    virtual ~Fighter()=default;
 
     /**
      * @brief Operator=
@@ -119,7 +125,7 @@ public:
      *
      * @return The role of the fighter
      */
-    constexpr ROLE_t GetRole() const noexcept { return this->m_role; }
+    ATTRIBUTE_NO_DISCARD inline constexpr ROLE_t GetRole() const noexcept { return this->m_role; }
 
     /**
      * @brief A getter
@@ -128,7 +134,7 @@ public:
      *
      * @return The health points of the fighter
      */
-    int GetHealth() const noexcept { return this->m_health; }
+    ATTRIBUTE_NO_DISCARD inline int GetHealth() const noexcept { return this->m_health; }
 
     /**
      * @brief A setter
@@ -157,7 +163,7 @@ public:
      * @param health_points the health points to be set
      * @return The health points of the fighter
      */
-    void SetHealth(const int health_points) noexcept { this->m_health = health_points; }
+    inline void SetHealth(const int health_points) noexcept { this->m_health = health_points; }
 
     /**
      * @brief IsAlive
@@ -166,7 +172,7 @@ public:
      *
      * @return true or false depending on the check if the fighter is alive or not
      */
-    bool IsAlive() const noexcept{ return this->m_health > HEALTH_DEAD; }
+    ATTRIBUTE_NO_DISCARD inline bool IsAlive() const noexcept{ return this->m_health > HEALTH_DEAD; }
 
     /**
      * @brief CanAttack
@@ -176,7 +182,7 @@ public:
      * @param other the fighter to be checked
      * @return true or false depending on the check if it is an enemy
      */
-    bool IsEnemy(const Fighter& other) const noexcept;
+    ATTRIBUTE_NO_DISCARD bool IsEnemy(const Fighter& other) const noexcept;
 
     /**
      * @brief CanAttack
@@ -186,7 +192,7 @@ public:
      * @param other the fighter to be checked
      * @return true or false depending on the check if it is an enemy and is alive
      */
-    bool CanAttack(const Fighter& other) const noexcept;
+    ATTRIBUTE_NO_DISCARD bool CanAttack(const Fighter& other) const noexcept;
 
     /**
      * @brief Print
@@ -211,7 +217,7 @@ public:
      *
      * @return The role of the fighter
      */
-    const char* RoleToString() const noexcept;
+    ATTRIBUTE_NO_DISCARD const char* RoleToString() const noexcept;
 
     /**
      * @brief RoleToString
@@ -256,7 +262,7 @@ public:
     /**
      * @brief The destructor
      */
-    ~Hero()=default;
+    //~Hero() override = default;
 
     /**
      * @brief Attack()
@@ -286,7 +292,7 @@ public:
     /**
      * @brief The destructor
      */
-    ~Monster()=default;
+    //~Monster() override = default;
 
     /**
      * @brief Attack()

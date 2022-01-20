@@ -44,7 +44,7 @@ TEST(Fighter, CopyConstructor) /* NOLINT */
 TEST(Fighter, MoveConstructor) /* NOLINT */
 {
     //auto f = Fighter(0);
-    auto fmove( std::move(Fighter(0) ) );
+    auto fmove( Fighter(0) );
 
     EXPECT_EQ(fmove.GetRole(), ROLE_HERO);
     EXPECT_EQ(fmove.GetHealth(), HEALTH_HERO);
@@ -62,7 +62,7 @@ TEST(Fighter, CopyAssignmentOperator) /* NOLINT */
 
 TEST(Fighter, MoveAssignmentOperator) /* NOLINT */
 {
-    auto fmove = std::move(Fighter(0) );
+    auto fmove = Fighter(0);
 
     EXPECT_EQ(fmove.GetRole(), ROLE_HERO);
     EXPECT_EQ(fmove.GetHealth(), HEALTH_HERO);
@@ -209,7 +209,7 @@ TEST(Hero, Attack) /* NOLINT */
     h1.Attack(orc);
 
     EXPECT_EQ(orc.GetHealth(), static_cast<int>(HEALTH_ORC - 2) ); // dead fighter can't attack
-    std::string term_out = testing::internal::GetCapturedStdout(); //flushes an releases the captured stdout to avoid segfaults
+    std::string term_out = testing::internal::GetCapturedStdout(); //flushes and releases the captured stdout to avoid segfaults
 }
 
 TEST(Monster, Attack) /* NOLINT */
@@ -235,7 +235,7 @@ TEST(Monster, Attack) /* NOLINT */
     orc.Attack(h); dragon.Attack(h);
 
     EXPECT_EQ(h.GetHealth(), static_cast<int>(HEALTH_HERO - 4) ); // dead fighter can't attack
-    std::string term_out = testing::internal::GetCapturedStdout(); //flushes an releases the captured stdout to avoid segfaults
+    std::string term_out = testing::internal::GetCapturedStdout(); //flushes and releases the captured stdout to avoid segfaults
 }
 
 

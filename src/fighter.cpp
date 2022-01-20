@@ -177,7 +177,6 @@ void Fighter::SetRole(const int role_int) noexcept
 
 
 
-
 //-----------------------------------------------------------------------------
 //
 //  Fighter::IsEnemy()

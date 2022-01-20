@@ -39,7 +39,9 @@ endif()
 
 ADD_CUSTOM_TARGET (distclean)
 SET(DISTCLEANED
-        CTestTestfile.cmake basic_game.cbp CMakeFiles html latex CMakeCache.txt CMakeDoxyfile.in CMakeDoxygenDefaults.cmake cmake_install.cmake  doxygen_output Makefile
+        CTestTestfile.cmake *basic_game* runTests
+        CMakeFiles html latex CMakeCache.txt CMakeDoxyfile.in
+        CMakeDoxygenDefaults.cmake cmake_install.cmake  doxygen_output Makefile
         )
 
 ADD_CUSTOM_COMMAND(
