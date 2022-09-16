@@ -13,9 +13,10 @@ if(NOT CMAKE_BUILD_TYPE)
 else()
     message(STATUS "Setting the build type to 'Debug'")
     set(CMAKE_BUILD_TYPE "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -O0 -g -rdynamic -Wall -Wextra -std=c++17 -lasan -fsanitize=address")
-    set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fopenmp -fno-omit-frame-pointer -lasan -std=c++17 -fsanitize=address")
-    set (CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -lasan -fsanitize=address")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -O0 -g -rdynamic -Wall -Wextra -std=c++17 -lasan -fsanitize=address")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -O0 -g -Wall -Wextra -std=c++17")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fopenmp -fno-omit-frame-pointer -std=c++17")
+    set(CMAKE_LINKER_FLAGS_DEBUG "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer")
 endif()
 
 
@@ -62,6 +63,7 @@ add_executable(runTests test/test_fighter.cpp include/fighter.h src/fighter.cpp)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -O3 -Wall -Wextra -std=c++17")
 target_include_directories(runTests PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include" "${GTEST_INCLUDE_DIRS}")
 target_link_libraries(runTests ${GTEST_LIBRARIES} pthread)
+add_test(NAME "Complete_tests" COMMAND runTests ARGS --gtest_color=yes)
 
 
 
