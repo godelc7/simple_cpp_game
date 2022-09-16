@@ -1,5 +1,6 @@
 #include "fighter.h"
 #include <gtest/gtest.h>
+#include <cstring>
 
 TEST(Fighter, DefaultConstructor) /* NOLINT */
 {
@@ -154,10 +155,10 @@ TEST(Fighter, RoleToString) /* NOLINT */
     auto fo = Fighter(1);
     auto fd = Fighter(2);
 
-    EXPECT_EQ(fu.RoleToString(), "Undefined");
-    EXPECT_EQ(fh.RoleToString(), "Hero");
-    EXPECT_EQ(fo.RoleToString(), "Orc");
-    EXPECT_EQ(fd.RoleToString(), "Dragon");
+    EXPECT_EQ(std::strcmp(fu.RoleToString(), "Undefined"), 0);
+    EXPECT_EQ(std::strcmp(fh.RoleToString(), "Hero"), 0);
+    EXPECT_EQ(std::strcmp(fo.RoleToString(), "Orc"), 0);
+    EXPECT_EQ(std::strcmp(fd.RoleToString(), "Dragon"), 0);
 
     //TODO @kamdoum: check role with any value larger than ROLE_DRAGON in order to trigger an error and catch it
 }
