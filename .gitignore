@@ -14,3 +14,5 @@ latex
 Makefile
 runTests
 .idea
+.vscode
+build
