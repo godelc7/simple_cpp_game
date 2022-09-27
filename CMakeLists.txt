@@ -204,7 +204,10 @@ endif()
 
 
 # ====================== CLANG-TIDY ============================================
-find_program(CLANG_TIDY_BIN NAMES clang-tidy DOC "Path to the clang-tidy executable")
+find_program(CLANG_TIDY_BIN 
+    NAMES clang-tidy 
+    DOC "Path to the clang-tidy executable"
+)
 
 if(CLANG_TIDY_BIN)
     message(STATUS "Found Clang-tidy: ${CLANG_TIDY_BIN}")
