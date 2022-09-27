@@ -2,10 +2,11 @@
 #define FIGHTER_H
 
 #include <string>
-#include <iostream>
 #include <thread>
 #include <chrono>
+#include <mutex>
 #include <utility>
+#include <iostream>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -13,32 +14,47 @@
 
 #if defined(__GNUC__) || defined(__clang__)
     #define ATTRIBUTE_NO_DISCARD [[nodiscard]]
+
+    using ROLE_t = enum ROLE {
+        ROLE_UNDEFINED = -1,
+        ROLE_HERO,
+        ROLE_ORC,
+        ROLE_DRAGON,
+    } ;
+
+    using START_HEALTH_t = enum START_HEALTH {
+        HEALTH_UNDEFINED = -1,
+        HEALTH_DEAD = 0,
+        HEALTH_ORC = 7,
+        HEALTH_DRAGON = 20,
+        HEALTH_HERO = 40,
+    };
 #else
     #define ATTRIBUTE_NO_DISCARD
+
+    typedef enum ROLE {
+        ROLE_UNDEFINED = -1,
+        ROLE_HERO,
+        ROLE_ORC,
+        ROLE_DRAGON,
+    } ROLE_t;
+
+    typedef enum START_HEALTH {
+        HEALTH_UNDEFINED = -1,
+        HEALTH_DEAD = 0,
+        HEALTH_ORC = 7,
+        HEALTH_DRAGON = 20,
+        HEALTH_HERO = 40,
+    } START_HEALTH_t;
 #endif
-
-typedef enum ROLE {
-    ROLE_UNDEFINED = -1,
-    ROLE_HERO,
-    ROLE_ORC,
-    ROLE_DRAGON,
-} ROLE_t;
-
-
-typedef enum START_HEALTH {
-    HEALTH_UNDEFINED = -1,
-    HEALTH_DEAD = 0,
-    HEALTH_ORC = 7,
-    HEALTH_DRAGON = 20,
-    HEALTH_HERO = 40,
-} START_HEALTH_t;
 
 
 
 /**
  * @brief Class fighter
  *
- * This class implements a simple fighter. It is meant to be a base class that other classes can inherit from.
+ * This class implements a simple fighter. 
+ * It is meant to be a base class that other classes can inherit from.
  */
 class Fighter {
 public:
@@ -69,7 +85,8 @@ public:
      * @param role_int the role of the fighter to be created
      * @return A reference to the new created fighter
      */
-    explicit Fighter(const int role_int) noexcept : Fighter{ IntToRole(role_int) }{};
+    explicit Fighter(const int role_int) noexcept 
+    : Fighter{ IntToRole(role_int) }{};
 
     /**
      * @brief Copy Constructor
@@ -92,7 +109,8 @@ public:
      */
     Fighter(Fighter&& other) noexcept;
 
-    //TODO @ Kamdoum: make the destructor pure virtual (~Fighter()=0), so this class can really be an abstract class
+    //TODO(Godel): make the destructor pure virtual (~Fighter()=0), 
+    // so this class can really be an abstract class
     /**
      * @brief The destructor
      */
@@ -125,7 +143,9 @@ public:
      *
      * @return The role of the fighter
      */
-    ATTRIBUTE_NO_DISCARD inline constexpr ROLE_t GetRole() const noexcept { return this->m_role; }
+    ATTRIBUTE_NO_DISCARD inline constexpr ROLE_t GetRole() const noexcept { 
+        return this->m_role; 
+    }
 
     /**
      * @brief A getter
@@ -134,7 +154,9 @@ public:
      *
      * @return The health points of the fighter
      */
-    ATTRIBUTE_NO_DISCARD inline int GetHealth() const noexcept { return this->m_health; }
+    ATTRIBUTE_NO_DISCARD inline int GetHealth() const noexcept { 
+        return this->m_health; 
+    }
 
     /**
      * @brief A setter
@@ -163,16 +185,20 @@ public:
      * @param health_points the health points to be set
      * @return The health points of the fighter
      */
-    inline void SetHealth(const int health_points) noexcept { this->m_health = health_points; }
+    inline void SetHealth(const int health_points) noexcept { 
+        this->m_health = health_points; 
+    }
 
     /**
      * @brief IsAlive
      *
      * Check if the fighter is alive
      *
-     * @return true or false depending on the check if the fighter is alive or not
+     * @return true if the fighter is alive or false otherwise
      */
-    ATTRIBUTE_NO_DISCARD inline bool IsAlive() const noexcept{ return this->m_health > HEALTH_DEAD; }
+    ATTRIBUTE_NO_DISCARD inline bool IsAlive() const noexcept{ 
+        return this->m_health > HEALTH_DEAD; 
+    }
 
     /**
      * @brief CanAttack
@@ -190,7 +216,7 @@ public:
      * Check if the fighter can attack another one
      *
      * @param other the fighter to be checked
-     * @return true or false depending on the check if it is an enemy and is alive
+     * @return true if the other and is alive, or false otherwise
      */
     ATTRIBUTE_NO_DISCARD bool CanAttack(const Fighter& other) const noexcept;
 
@@ -206,7 +232,8 @@ public:
     /**
      * @brief Reset
      *
-     * Reset the fighter by setting its role and health points to undefined values
+     * Reset the fighter by setting its role and 
+     * health points to undefined values
      */
     void Reset() noexcept;
 
@@ -220,7 +247,7 @@ public:
     ATTRIBUTE_NO_DISCARD const char* RoleToString() const noexcept;
 
     /**
-     * @brief RoleToString
+     * @brief IntToRole
      *
      * Return the role of fighter as a C string
      *
@@ -274,7 +301,8 @@ public:
      */
     void Attack(Fighter& other) const noexcept override;
 
-    //TODO @Kamdoum: implement some kind of protection to avoid an Hero to be initialized with the role of an orc or dragon
+    //TODO(Godel): implement some kind of protection to avoid an Hero 
+    //to be initialized with the role of an orc or dragon
 };
 
 
@@ -304,15 +332,18 @@ public:
      */
     void Attack(Fighter& other) const noexcept override;
 
-    //TODO @Kamdoum: implement some kind of protection to avoid a Monster to be initialized with the role of an Hero
+    //TODO(Godel): implement some kind of protection to avoid 
+    //a Monster to be initialized with the role of an Hero
 };
 
 
 
 /*
- * TODO @Kamdoum: implement special classes for Orcs and Dragons. This is not strictly required now,
- *                since the only difference between them is the time when they are allowed to attack the Hero.
- *                But more special features can be added to them in the future.
+ * TODO(Godel): implement special classes for Orcs and Dragons. 
+                This is not strictly required now, since the only difference
+                between them is the time when they are allowed 
+                to attack the Hero. But more special features can be added 
+                to them in the future.
  */
 
 /**
@@ -322,7 +353,9 @@ public:
  */
 class Orc : public Monster {
 public:
-    void Attack(Fighter& other) const noexcept final{ other.Print(); /* Not yet implemented*/ };
+    void Attack(Fighter& other) const noexcept final{ 
+        other.Print(); // Not yet implemented
+    };
 };
 
 /**
@@ -333,7 +366,9 @@ public:
 class Dragon : public Monster {
 
 public:
-    void Attack(Fighter& other) const noexcept final{ other.Print(); /* Not yet implemented*/ };
+    void Attack(Fighter& other) const noexcept final{ 
+        other.Print(); // Not yet implemented
+    };
 };
 
 #endif // FIGHTER_H

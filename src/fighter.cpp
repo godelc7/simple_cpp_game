@@ -1,5 +1,6 @@
 #include "fighter.h"
 
+std::mutex g_mutex; // NOLINT --> deactivate all clang-tidy checks on this line
 
 //-----------------------------------------------------------------------------
 //
@@ -61,6 +62,12 @@ Fighter::Fighter(Fighter&& other) noexcept
 Fighter& Fighter::operator=(const Fighter& other) noexcept
 {
     //std::cout << "\nCopy Assignment Operator!!!\n";
+    if(&other == this){
+        return *this;
+    }
+    //if(this != nullptr){
+    //    this->Reset();
+    //}
     m_role = other.GetRole();
     m_health = other.GetHealth();
     return *this;
@@ -103,9 +110,15 @@ const char* Fighter::RoleToString() const noexcept
         case ROLE_HERO:      return "Hero";
         case ROLE_ORC:       return "Orc";
         case ROLE_DRAGON:    return "Dragon";
-        default:  std::cout << "\033[31m\nError in file '" << __FILE__ << "' line " << __LINE__
-                            << ": unknown fighter role!\n\033[0m";
-                  exit( EXIT_FAILURE );
+        default:  {
+            std::cout << "\033[31m\nError in file '" << __FILE__ << "' line "
+                      << __LINE__ << ": unknown fighter role!\n\033[0m";
+            //Avoid concurrent call to exit() by using 
+            //std::lock_guard<std::mutex>: it is an RAII aware mutex
+            //that is therefore automaticaly unlocked when going out of scope
+            std::lock_guard<std::mutex> lock(g_mutex);
+            exit( EXIT_FAILURE ); // NOLINT
+        }
     }
 }
 
@@ -116,8 +129,9 @@ const char* Fighter::RoleToString() const noexcept
 //
 ROLE_t Fighter::IntToRole(const int role) noexcept
 {
-    if(role < -1)
+    if(role < -1){
         return ROLE_UNDEFINED;
+    }
 
     switch(role)
     {
@@ -125,9 +139,12 @@ ROLE_t Fighter::IntToRole(const int role) noexcept
         case 0:  return ROLE_HERO;
         case 1:  return ROLE_ORC;
         case 2:  return ROLE_DRAGON;
-        default: std::cout << "\033[31m\nError in file '" << __FILE__ << "' line " << __LINE__
-                            << ": unknown fighter role!\n\033[0m";
-                 exit( EXIT_FAILURE );
+        default: {
+            std::cout << "\033[31m\nError in file '" << __FILE__ << "' line "
+                      << __LINE__ << ": unknown fighter role!\n\033[0m";
+            std::lock_guard<std::mutex> lock(g_mutex);
+            exit( EXIT_FAILURE ); // NOLINT
+        }
     }
 }
 
@@ -139,12 +156,14 @@ ROLE_t Fighter::IntToRole(const int role) noexcept
 void Fighter::Print() const noexcept
 {
     std::cout << "Fighter information:\n\tRole: '" << this->RoleToString()
-              << "'\n\tRemaining health: " << this->GetHealth(); // << std::endl;
+              << "'\n\tRemaining health: " << this->GetHealth();
 
-    if( this->GetHealth() == HEALTH_DEAD )
+    if( this->GetHealth() == HEALTH_DEAD ){
         std::cout << "\033[31m  -->  Fighter death!!!\033[0m";
-    if(this->m_role == ROLE_UNDEFINED || this->m_health < 0)
+    }
+    if(this->m_role == ROLE_UNDEFINED || this->m_health < 0){
         std::cout << "\033[31m  -->  Fighter not initialized\033[0m";
+    }
 
     std::cout << std::endl;
 }
@@ -158,9 +177,10 @@ void Fighter::SetRole(const ROLE_t role) noexcept
 {
     if(role > ROLE_DRAGON)
     {
-        std::cout << "\033[31m\nError in file '" << __FILE__ << "' line " << __LINE__
-                  << ": unknown fighter role!\n\033[0m";
-        exit( EXIT_FAILURE );
+        std::cout << "\033[31m\nError in file '" << __FILE__ << "' line " 
+                  << __LINE__ << ": unknown fighter role!\n\033[0m";
+        std::lock_guard<std::mutex> lock(g_mutex);
+        exit( EXIT_FAILURE ); // NOLINT
     }
 
     this->m_role = role <= ROLE_UNDEFINED ? ROLE_UNDEFINED :  role;
@@ -168,11 +188,12 @@ void Fighter::SetRole(const ROLE_t role) noexcept
 
 void Fighter::SetRole(const int role_int) noexcept
 {
-    if(role_int < -1)
-        return SetRole(ROLE_UNDEFINED);
-    else
-        return SetRole( this->IntToRole(role_int) );
-
+    if(role_int < -1){
+        SetRole(ROLE_UNDEFINED);
+    }
+    else{
+        SetRole( this->IntToRole(role_int) );
+    }
 }
 
 
@@ -183,12 +204,15 @@ void Fighter::SetRole(const int role_int) noexcept
 //
 bool Fighter::IsEnemy(const Fighter& other) const noexcept
 {
-    if(this->m_role == ROLE_HERO)
-        return other.GetRole() == ROLE_ORC || other.GetRole() == ROLE_DRAGON;
-    else if(this->m_role == ROLE_ORC || this->m_role == ROLE_DRAGON)
-        return other.GetRole() == ROLE_HERO;
+    bool ret{false};
+    if(this->m_role == ROLE_HERO){
+        ret = other.GetRole() == ROLE_ORC || other.GetRole() == ROLE_DRAGON;
+    }
+    else if(this->m_role == ROLE_ORC || this->m_role == ROLE_DRAGON){
+        ret = other.GetRole() == ROLE_HERO;
+    }
 
-    return false; // undefined fighter
+    return ret; //undefined fighter --> return false
 }
 
 
@@ -208,13 +232,17 @@ bool Fighter::CanAttack(const Fighter& other) const noexcept
 //
 void Fighter::Attack(Fighter& other) const noexcept
 {
-    if( this->CanAttack(other) )
-    {
-        const char *myName( this->RoleToString() ), *enemy_name( other.RoleToString() );
-        if(this->GetRole() == ROLE_HERO)
-            std::cout  << "\033[32m" << myName << " hits " << enemy_name << ". \n\033[0m";
-        else
-            std::cout  << "\033[31m" << myName << " hits " << enemy_name << ". \n\033[0m";
+    if( this->CanAttack(other) ){
+        const char *myName( this->RoleToString() );
+        const char *enemy_name( other.RoleToString() );
+        if(this->GetRole() == ROLE_HERO){
+            std::cout  << "\033[32m" << myName << " hits " 
+                       << enemy_name << ". \n\033[0m";
+        }
+        else{
+            std::cout  << "\033[31m" << myName << " hits " 
+                       << enemy_name << ". \n\033[0m";
+        }
     }
 }
 
@@ -236,16 +264,18 @@ void Fighter::Attack(Fighter& other) const noexcept
 //
 void Hero::Attack(Fighter& other) const noexcept
 {
-    if( this->CanAttack(other) )
-    {
-        const char *myName( this->RoleToString() ), *enemy_name( other.RoleToString() );
-        int damage(2);
+    if( this->CanAttack(other) ){
+        const char *myName( this->RoleToString() );
+        const char *enemy_name( other.RoleToString() );
+        constexpr int damage(2);
         other.SetHealth( other.GetHealth() - damage );
         std::cout  << "\033[32m" << myName << " hits " << enemy_name << ". "
-                   << enemy_name << " health is " << other.GetHealth() << "\n\033[0m";
+                   << enemy_name << " health is " << other.GetHealth() 
+                   << "\n\033[0m";
 
-        if( !other.IsAlive() )
+        if( !other.IsAlive() ){
             other.Reset();
+        }
     }
 }
 
@@ -266,14 +296,17 @@ void Monster::Attack(Fighter& other) const noexcept
 {
     if( this->CanAttack(other) )
     {
-        const char *myName(this->RoleToString()), *enemy_name(other.RoleToString());
-        int damage = (this->GetRole() == ROLE_ORC) ? 1 : 3;
+        const char *myName(this->RoleToString());
+        const char *enemy_name(other.RoleToString());
+        const int damage = (this->GetRole() == ROLE_ORC) ? 1 : 3;
         other.SetHealth(other.GetHealth() - damage);
         std::cout << "\033[31m" << myName << " hits " << enemy_name << ". "
-                  << enemy_name << " health is " << other.GetHealth() << "\n\033[0m";
+                  << enemy_name << " health is " << other.GetHealth() 
+                  << "\n\033[0m";
 
-        if (!other.IsAlive())
+        if (!other.IsAlive()){
             other.Reset();
+        }
     }
 }
 

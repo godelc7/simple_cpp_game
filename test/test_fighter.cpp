@@ -2,241 +2,254 @@
 #include <gtest/gtest.h>
 #include <cstring>
 
-TEST(Fighter, DefaultConstructor) /* NOLINT */
+TEST(Fighter, DefaultConstructor)
 {
-    Fighter f;
+    const Fighter f11;
 
-    EXPECT_EQ(f.GetRole(), ROLE_UNDEFINED);
-    EXPECT_EQ(f.GetHealth(), HEALTH_UNDEFINED);
+    EXPECT_EQ(f11.GetRole(), ROLE_UNDEFINED);
+    EXPECT_EQ(f11.GetHealth(), HEALTH_UNDEFINED);
 }
 
-TEST(Fighter, ConstructorFromRole) /* NOLINT */
+TEST(Fighter, ConstructorFromRole)
 {
-    //note: by calling Fighter(int) Fighter(ROLE_t) is also called, so both constructors are tested here
+    //note: by calling Fighter(int) Fighter(ROLE_t) 
+    //is also called, so both constructors are tested here
     //note: Getter methods are also tested here
-    auto fu = Fighter(-1);
-    auto fh = Fighter(0);
-    auto fo = Fighter(1);
-    auto fd = Fighter(2);
+    auto f_un = Fighter(-1);
+    auto f_h = Fighter(0);
+    auto f_o = Fighter(1);
+    auto f_d = Fighter(2);
 
-    EXPECT_EQ(fu.GetRole(), ROLE_UNDEFINED);
-    EXPECT_EQ(fu.GetHealth(), HEALTH_UNDEFINED);
+    EXPECT_EQ(f_un.GetRole(), ROLE_UNDEFINED);
+    EXPECT_EQ(f_un.GetHealth(), HEALTH_UNDEFINED);
 
-    EXPECT_EQ(fh.GetRole(), ROLE_HERO);
-    EXPECT_EQ(fh.GetHealth(), HEALTH_HERO);
+    EXPECT_EQ(f_h.GetRole(), ROLE_HERO);
+    EXPECT_EQ(f_h.GetHealth(), HEALTH_HERO);
 
-    EXPECT_EQ(fo.GetRole(), ROLE_ORC);
-    EXPECT_EQ(fo.GetHealth(), HEALTH_ORC);
+    EXPECT_EQ(f_o.GetRole(), ROLE_ORC);
+    EXPECT_EQ(f_o.GetHealth(), HEALTH_ORC);
 
-    EXPECT_EQ(fd.GetRole(), ROLE_DRAGON);
-    EXPECT_EQ(fd.GetHealth(), HEALTH_DRAGON);
+    EXPECT_EQ(f_d.GetRole(), ROLE_DRAGON);
+    EXPECT_EQ(f_d.GetHealth(), HEALTH_DRAGON);
 }
 
-TEST(Fighter, CopyConstructor) /* NOLINT */
+TEST(Fighter, CopyConstructor)
 {
-    auto f = Fighter(0);
-    auto fcopy(f);
+    auto f11 = Fighter(0);
+    auto f_copy(f11);
 
-    EXPECT_EQ(f.GetRole(), fcopy.GetRole());
-    EXPECT_EQ(f.GetHealth(), fcopy.GetHealth());
-    EXPECT_NE(&f, &fcopy);
+    EXPECT_EQ(f11.GetRole(), f_copy.GetRole());
+    EXPECT_EQ(f11.GetHealth(), f_copy.GetHealth());
+    EXPECT_NE(&f11, &f_copy);
 }
 
-TEST(Fighter, MoveConstructor) /* NOLINT */
+TEST(Fighter, MoveConstructor)
 {
     //auto f = Fighter(0);
-    auto fmove( Fighter(0) );
+    auto f_move( Fighter(0) );
 
-    EXPECT_EQ(fmove.GetRole(), ROLE_HERO);
-    EXPECT_EQ(fmove.GetHealth(), HEALTH_HERO);
+    EXPECT_EQ(f_move.GetRole(), ROLE_HERO);
+    EXPECT_EQ(f_move.GetHealth(), HEALTH_HERO);
 }
 
-TEST(Fighter, CopyAssignmentOperator) /* NOLINT */
+TEST(Fighter, CopyAssignmentOperator)
 {
-    auto f = Fighter(0);
-    auto fcopy = f;
+    auto f11 = Fighter(0);
+    auto f_copy = f11;
 
-    EXPECT_EQ(fcopy.GetRole(), ROLE_HERO);
-    EXPECT_EQ(fcopy.GetHealth(), HEALTH_HERO);
-    EXPECT_NE(&f, &fcopy);
+    EXPECT_EQ(f_copy.GetRole(), ROLE_HERO);
+    EXPECT_EQ(f_copy.GetHealth(), HEALTH_HERO);
+    EXPECT_NE(&f11, &f_copy);
 }
 
-TEST(Fighter, MoveAssignmentOperator) /* NOLINT */
+TEST(Fighter, MoveAssignmentOperator)
 {
-    auto fmove = Fighter(0);
+    auto f_move = Fighter(0);
 
-    EXPECT_EQ(fmove.GetRole(), ROLE_HERO);
-    EXPECT_EQ(fmove.GetHealth(), HEALTH_HERO);
+    EXPECT_EQ(f_move.GetRole(), ROLE_HERO);
+    EXPECT_EQ(f_move.GetHealth(), HEALTH_HERO);
 }
 
-TEST(Fighter, SetterMethods) /* NOLINT */
+TEST(Fighter, SetterMethods)
 {
-    Fighter f; //undefined role and health points
+    Fighter f11; //undefined role and health points
 
-    f.SetRole(ROLE_DRAGON); f.SetHealth(HEALTH_DEAD);
+    f11.SetRole(ROLE_DRAGON); f11.SetHealth(HEALTH_DEAD);
 
-    EXPECT_EQ(f.GetRole(), ROLE_DRAGON);
-    EXPECT_EQ(f.GetHealth(), HEALTH_DEAD);
+    EXPECT_EQ(f11.GetRole(), ROLE_DRAGON);
+    EXPECT_EQ(f11.GetHealth(), HEALTH_DEAD);
 
-    f.SetRole(ROLE_ORC); f.SetHealth(HEALTH_ORC);
-    EXPECT_EQ(f.GetRole(), ROLE_ORC);
-    EXPECT_EQ(f.GetHealth(), HEALTH_ORC);
+    f11.SetRole(ROLE_ORC); f11.SetHealth(HEALTH_ORC);
+    EXPECT_EQ(f11.GetRole(), ROLE_ORC);
+    EXPECT_EQ(f11.GetHealth(), HEALTH_ORC);
 
-    f.SetRole(-2);
-    EXPECT_EQ(f.GetRole(), ROLE_UNDEFINED);
-    EXPECT_EQ(f.GetHealth(), HEALTH_ORC);
+    f11.SetRole(-2);
+    EXPECT_EQ(f11.GetRole(), ROLE_UNDEFINED);
+    EXPECT_EQ(f11.GetHealth(), HEALTH_ORC);
 
-    f.SetRole(2);
-    EXPECT_EQ(f.GetRole(), ROLE_DRAGON);
-    EXPECT_EQ(f.GetHealth(), HEALTH_ORC);
+    f11.SetRole(2);
+    EXPECT_EQ(f11.GetRole(), ROLE_DRAGON);
+    EXPECT_EQ(f11.GetHealth(), HEALTH_ORC);
 
-    //TODO @kamdoum: set the role to any value larger than ROLE_DRAGON in order to trigger an error and catch it
+    //TODO(Godel): set the role to any value larger than ROLE_DRAGON 
+    //in order to trigger an error and catch it
     //f.SetRole(3);
     //EXPECT_EQ(f.GetRole(), ROLE_DRAGON);
     //EXPECT_EQ(f.GetHealth(), HEALTH_ORC);
 }
 
-TEST(Fighter, IsAlive) /* NOLINT */
+TEST(Fighter, IsAlive)
 {
-    auto f = Fighter(ROLE_HERO);
-    Fighter f2; //undefined
+    const auto f11 = Fighter(ROLE_HERO);
+    const Fighter f22; //undefined
 
-    EXPECT_EQ(f.IsAlive(), true);
-    EXPECT_EQ(f2.IsAlive(), false);
+    EXPECT_EQ(f11.IsAlive(), true);
+    EXPECT_EQ(f22.IsAlive(), false);
 }
 
-TEST(Fighter, IsEnemy) /* NOLINT */
+TEST(Fighter, IsEnemy)
 {
-    auto f = Fighter(ROLE_HERO);
-    auto ff = Fighter(ROLE_HERO);
-    auto f1 = Fighter(ROLE_ORC);
-    auto f2 = Fighter(ROLE_DRAGON);
-    Fighter fu; //undefined
+    const auto f11 = Fighter(ROLE_HERO);
+    const auto ff1 = Fighter(ROLE_HERO);
+    const auto f12 = Fighter(ROLE_ORC);
+    const auto f22 = Fighter(ROLE_DRAGON);
+    const Fighter fu1; //undefined
 
-    EXPECT_EQ(f.IsEnemy(ff), false);
-    EXPECT_EQ(f.IsEnemy(fu), false);
-    EXPECT_EQ(f.IsEnemy(f1), true);
-    EXPECT_EQ(f.IsEnemy(f2), true);
-    EXPECT_EQ(f1.IsEnemy(fu), false);
-    EXPECT_EQ(f2.IsEnemy(fu), false);
-    EXPECT_EQ(f1.IsEnemy(f2), false);
+    EXPECT_EQ(f11.IsEnemy(ff1), false);
+    EXPECT_EQ(f11.IsEnemy(fu1), false);
+    EXPECT_EQ(f11.IsEnemy(f12), true);
+    EXPECT_EQ(f11.IsEnemy(f22), true);
+    EXPECT_EQ(f12.IsEnemy(fu1), false);
+    EXPECT_EQ(f22.IsEnemy(fu1), false);
+    EXPECT_EQ(f12.IsEnemy(f22), false);
 }
 
-TEST(Fighter, CanAttack) /* NOLINT */
+TEST(Fighter, CanAttack)
 {
-    auto f = Fighter(ROLE_HERO);
-    auto ff = Fighter(ROLE_HERO);
-    auto f1 = Fighter(ROLE_ORC);
-    auto f2 = Fighter(ROLE_DRAGON);
-    Fighter fu; //undefined
+    const auto f_1 = Fighter(ROLE_HERO);
+    const auto ff_1 = Fighter(ROLE_HERO);
+    const auto f1_1 = Fighter(ROLE_ORC);
+    const auto f2_1 = Fighter(ROLE_DRAGON);
+    const Fighter fu_1; //undefined
 
-    EXPECT_EQ(f.CanAttack(ff), false);
-    EXPECT_EQ(f.CanAttack(fu), false);
-    EXPECT_EQ(f.CanAttack(f1), true);
-    EXPECT_EQ(f.CanAttack(f2), true);
-    EXPECT_EQ(f1.CanAttack(fu), false);
-    EXPECT_EQ(f2.CanAttack(fu), false);
-    EXPECT_EQ(f1.CanAttack(f2), false);
+    EXPECT_EQ(f_1.CanAttack(ff_1), false);
+    EXPECT_EQ(f_1.CanAttack(fu_1), false);
+    EXPECT_EQ(f_1.CanAttack(f1_1), true);
+    EXPECT_EQ(f_1.CanAttack(f2_1), true);
+    EXPECT_EQ(f1_1.CanAttack(fu_1), false);
+    EXPECT_EQ(f2_1.CanAttack(fu_1), false);
+    EXPECT_EQ(f1_1.CanAttack(f2_1), false);
 }
 
-TEST(Fighter, Reset) /* NOLINT */
+TEST(Fighter, Reset)
 {
-    auto f = Fighter(ROLE_HERO);
-    f.Reset();
+    auto f_1 = Fighter(ROLE_HERO);
+    f_1.Reset();
 
-    EXPECT_EQ(f.GetHealth(), HEALTH_UNDEFINED);
-    EXPECT_EQ(f.GetRole(), ROLE_UNDEFINED);
+    EXPECT_EQ(f_1.GetHealth(), HEALTH_UNDEFINED);
+    EXPECT_EQ(f_1.GetRole(), ROLE_UNDEFINED);
 }
 
-TEST(Fighter, RoleToString) /* NOLINT */
+TEST(Fighter, RoleToString)
 {
-    auto fu = Fighter(-1);
-    auto fh = Fighter(0);
-    auto fo = Fighter(1);
-    auto fd = Fighter(2);
+    auto fu_1 = Fighter(-1);
+    auto fh_1 = Fighter(0);
+    auto fo_1 = Fighter(1);
+    auto fd_1 = Fighter(2);
 
-    EXPECT_EQ(std::strcmp(fu.RoleToString(), "Undefined"), 0);
-    EXPECT_EQ(std::strcmp(fh.RoleToString(), "Hero"), 0);
-    EXPECT_EQ(std::strcmp(fo.RoleToString(), "Orc"), 0);
-    EXPECT_EQ(std::strcmp(fd.RoleToString(), "Dragon"), 0);
+    EXPECT_EQ(std::strcmp(fu_1.RoleToString(), "Undefined"), 0);
+    EXPECT_EQ(std::strcmp(fh_1.RoleToString(), "Hero"), 0);
+    EXPECT_EQ(std::strcmp(fo_1.RoleToString(), "Orc"), 0);
+    EXPECT_EQ(std::strcmp(fd_1.RoleToString(), "Dragon"), 0);
 
-    //TODO @kamdoum: check role with any value larger than ROLE_DRAGON in order to trigger an error and catch it
+    //TODO(Godel): check role with any value larger than ROLE_DRAGON in order 
+    //to trigger an error and catch it
 }
 
-TEST(Fighter, IntToRole) /* NOLINT */
+TEST(Fighter, IntToRole)
 {
-    Fighter f;
+    const Fighter f_1;
 
-    EXPECT_EQ(f.IntToRole(-2), ROLE_UNDEFINED);
-    EXPECT_EQ(f.IntToRole(-1), ROLE_UNDEFINED);
-    EXPECT_EQ(f.IntToRole(0),  ROLE_HERO);
-    EXPECT_EQ(f.IntToRole(1),  ROLE_ORC);
-    EXPECT_EQ(f.IntToRole(2),  ROLE_DRAGON);
+    EXPECT_EQ(f_1.IntToRole(-2), ROLE_UNDEFINED);
+    EXPECT_EQ(f_1.IntToRole(-1), ROLE_UNDEFINED);
+    EXPECT_EQ(f_1.IntToRole(0),  ROLE_HERO);
+    EXPECT_EQ(f_1.IntToRole(1),  ROLE_ORC);
+    EXPECT_EQ(f_1.IntToRole(2),  ROLE_DRAGON);
 
-    //TODO @kamdoum: check role with any value larger than ROLE_DRAGON in order to trigger an error and catch it
+    //TODO(Godel): check role with any value larger than ROLE_DRAGON in order 
+    //to trigger an error and catch it
 }
 
 
-TEST(Fighter, Attack) /* NOLINT */
+TEST(Fighter, Attack)
 {
     testing::internal::CaptureStdout();
 
-    auto fh = Fighter(ROLE_HERO);
-    auto fo = Fighter(ROLE_ORC);
+    const auto fh_1 = Fighter(ROLE_HERO);
+    auto fo_1 = Fighter(ROLE_ORC);
 
-    fh.Attack(fo);
-    std::string term_out = testing::internal::GetCapturedStdout();
+    fh_1.Attack(fo_1);
+    const std::string term_out = testing::internal::GetCapturedStdout();
     std::string to_test = "\033[32mHero hits Orc. \n\033[0m";
 
     EXPECT_EQ(term_out, to_test);
 
-    //TODO @Kamdoum: check an attack which can not occur ==> no terminal output
+    //TODO(Godel): check an attack which can not occur ==> no terminal output
 }
 
-TEST(Hero, Attack) /* NOLINT */
+TEST(Hero, Attack)
 {
     testing::internal::CaptureStdout();
 
-    Hero h1 = Hero(ROLE_HERO), h2 = Hero(ROLE_HERO);
-    auto orc = Monster(ROLE_ORC), dragon = Monster(ROLE_DRAGON);
+    Hero h1_1 = Hero(ROLE_HERO);
+    Hero h2_1 = Hero(ROLE_HERO);
+    auto orc = Monster(ROLE_ORC);
+    auto dragon = Monster(ROLE_DRAGON);
 
-    h1.Attack(orc); h1.Attack(dragon); h1.Attack(h2);
+    h1_1.Attack(orc); h1_1.Attack(dragon); h1_1.Attack(h2_1);
 
-    EXPECT_EQ(orc.GetHealth(), static_cast<int>(HEALTH_ORC - 2) );
-    EXPECT_EQ(dragon.GetHealth(), static_cast<int>(HEALTH_DRAGON - 2) );
-    EXPECT_EQ(h2.GetHealth(), static_cast<int>(HEALTH_HERO)); // no attack
+    EXPECT_EQ(orc.GetHealth(), HEALTH_ORC - 2);
+    EXPECT_EQ(dragon.GetHealth(), HEALTH_DRAGON - 2);
+    EXPECT_EQ(h2_1.GetHealth(), HEALTH_HERO); // no attack
 
-    h1.SetHealth(HEALTH_DEAD);
-    h1.Attack(orc);
+    h1_1.SetHealth(HEALTH_DEAD);
+    h1_1.Attack(orc);
 
-    EXPECT_EQ(orc.GetHealth(), static_cast<int>(HEALTH_ORC - 2) ); // dead fighter can't attack
-    std::string term_out = testing::internal::GetCapturedStdout(); //flushes and releases the captured stdout to avoid segfaults
+    EXPECT_EQ(orc.GetHealth(), HEALTH_ORC - 2); // dead fighter can't attack
+    testing::internal::GetCapturedStdout();
 }
 
-TEST(Monster, Attack) /* NOLINT */
+
+TEST(Monster, Attack)
 {
     testing::internal::CaptureStdout();
 
-    Hero h = Hero(ROLE_HERO);
-    auto orc = Monster(ROLE_ORC), dragon = Monster(ROLE_DRAGON);
+    Hero h_1 = Hero(ROLE_HERO);
+    auto orc = Monster(ROLE_ORC);
+    auto dragon = Monster(ROLE_DRAGON);
 
     orc.Attack(dragon); dragon.Attack(orc);
 
     EXPECT_EQ(orc.GetHealth(), static_cast<int>(HEALTH_ORC) ); //no attack
     EXPECT_EQ(dragon.GetHealth(), static_cast<int>(HEALTH_DRAGON) ); //no attack
 
-    orc.Attack(h);
-    EXPECT_EQ(h.GetHealth(), static_cast<int>(HEALTH_HERO - 1) );
+    orc.Attack(h_1);
+    EXPECT_EQ(h_1.GetHealth(), HEALTH_HERO - 1);
 
-    dragon.Attack(h);
-    EXPECT_EQ(h.GetHealth(), static_cast<int>(HEALTH_HERO - 4) );
+    dragon.Attack(h_1);
+    EXPECT_EQ(h_1.GetHealth(), HEALTH_HERO - 4);
 
 
-    orc.SetHealth(HEALTH_DEAD); dragon.SetHealth(HEALTH_DEAD);
-    orc.Attack(h); dragon.Attack(h);
+    orc.SetHealth(HEALTH_DEAD); 
+    dragon.SetHealth(HEALTH_DEAD);
+    orc.Attack(h_1); dragon.Attack(h_1);
 
-    EXPECT_EQ(h.GetHealth(), static_cast<int>(HEALTH_HERO - 4) ); // dead fighter can't attack
-    std::string term_out = testing::internal::GetCapturedStdout(); //flushes and releases the captured stdout to avoid segfaults
+    EXPECT_EQ(h_1.GetHealth(), HEALTH_HERO - 4); // dead fighter can't attack
+
+    const Monster m1_1 = Monster(ROLE_ORC);
+    m1_1.Attack(h_1);
+    //flushes and releases the captured stdout to avoid segfaults
+    testing::internal::GetCapturedStdout(); 
 }
 
 
