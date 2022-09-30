@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 
+# Comment out this part if you want to use the GNU toolchain instead
+set(CMAKE_C_COMPILER clang.exe)
+set(CMAKE_CXX_COMPILER clang++.exe)
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     add_compile_options (-fdiagnostics-color=always)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -15,7 +19,8 @@ if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "Setting the build type to 'Release'")
     set(CMAKE_BUILD_TYPE "Release")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
-elseif((CMAKE_BUILD_TYPE STREQUAL Debug) OR (CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo))
+elseif((CMAKE_BUILD_TYPE STREQUAL Debug) OR 
+       (CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo))
     message(STATUS "Setting the build type to '${CMAKE_BUILD_TYPE}'")
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
@@ -30,8 +35,11 @@ project(basic_game)
 # COMPILER_WARNING_STRICT: only contains '-Werror' which treat warning as error
 #-----------------------------------------------------
 
-if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR  (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
-    set(COMPILER_WARNING_BASIC -Wall -Wextra -Wshadow -Wnon-virtual-dtor -pedantic)
+if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR 
+   (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
+    set(COMPILER_WARNING_BASIC -Wall -Wextra -Wshadow 
+       -Wnon-virtual-dtor -pedantic
+    )
     set(COMPILER_WARNING_EXTENDED 
         -Wold-style-cast -Wcast-align -Wunused -Woverloaded-virtual -Wpedantic 
         -Wconversion -Wsign-conversion -Wmisleading-indentation 
@@ -41,7 +49,6 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR  (CMAKE_CXX_COMPILER_ID STREQUAL "C
     set(COMPILER_WARNING_STRICT -Werror)
 
     add_compile_options(${COMPILER_WARNING_BASIC} ${COMPILER_WARNING_EXTENDED})
-
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel") # Intel C/C++ compiler: ICC
     # TODO
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")  # Visual Studio C++
@@ -69,19 +76,20 @@ set(THREAD_SANITIZER_OPTIONS -fsanitize=thread)
 set(LEAK_SANITIZER_OPTIONS   -fsanitize=leak)
 set(UNDEFINED_BEHAVIOR_SANITIZER_OPTIONS -fsanitize=undefined)
 
-
-# Sanitizers aren't supported under MINGW GCC
-if(MINGW AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+# Sanitizers aren't supported under MINGW
+if(MINGW AND 
+(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
     set(ALL_SANITIZERS "")
 else()
     set(ALL_SANITIZERS 
         ${SANITIZER_BASIC_OPTIONS}  ${ADRESS_SANITIZER_OPTIONS} 
-        ${LEAK_SANITIZER_OPTIONS} ${UNDEFINED_BEHAVIOR_SANITIZER_OPTIONS}
+        ${UNDEFINED_BEHAVIOR_SANITIZER_OPTIONS}
     )
 endif()
 
 
-if((CMAKE_BUILD_TYPE STREQUAL Debug) OR (CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo))
+if((CMAKE_BUILD_TYPE STREQUAL Debug) OR 
+   (CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo))
     add_compile_options(${DEBUG_OPTIONS} ${ALL_SANITIZERS})
     add_link_options(${ALL_SANITIZERS})
 else()
@@ -245,7 +253,7 @@ if(CLANG_TIDY_BIN)
     )
 
     foreach(arg IN LISTS CLANG_TIDY_CMD_LINE)
-        #list(APPEND CMAKE_CXX_CLANG_TIDY ${arg})
+        list(APPEND CMAKE_CXX_CLANG_TIDY ${arg})
     endforeach()
 endif()
 
@@ -311,8 +319,6 @@ target_link_libraries(runTests
     ${THREADS_LINKER_FLAG}
 )
 add_test(NAME "Complete_tests" COMMAND runTests ARGS --gtest_color=yes)
-
-
 
 
 # ================ TARGET: Python extension with SWIG ===================

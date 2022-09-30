@@ -48,7 +48,7 @@ int main()
             std::cout << "\n|        THREAD 0: GAME OVER            |";
             std::cout << "\n-----------------------------------------\n\n";
 
-            std::lock_guard<std::mutex> lock1(g_mutex);
+            std::lock_guard<std::mutex> lock1(g_mutex); // NOLINT
             exit(EXIT_SUCCESS); // NOLINT : thread unsafe
         }
         else
@@ -99,7 +99,7 @@ int main()
             std::cout << "\n|        THREAD 1: GAME OVER            |";
             std::cout << "\n-----------------------------------------\n\n";
 
-            std::lock_guard<std::mutex> lock2(g_mutex);
+            std::lock_guard<std::mutex> lock2(g_mutex); // NOLINT
             exit(EXIT_SUCCESS); // NOLINT
         }
     }

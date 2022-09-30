@@ -116,7 +116,7 @@ const char* Fighter::RoleToString() const noexcept
             //Avoid concurrent call to exit() by using 
             //std::lock_guard<std::mutex>: it is an RAII aware mutex
             //that is therefore automaticaly unlocked when going out of scope
-            std::lock_guard<std::mutex> lock(g_mutex);
+            std::lock_guard<std::mutex> lock(g_mutex); // NOLINT
             exit( EXIT_FAILURE ); // NOLINT
         }
     }
@@ -142,7 +142,7 @@ ROLE_t Fighter::IntToRole(const int role) noexcept
         default: {
             std::cout << "\033[31m\nError in file '" << __FILE__ << "' line "
                       << __LINE__ << ": unknown fighter role!\n\033[0m";
-            std::lock_guard<std::mutex> lock(g_mutex);
+            std::lock_guard<std::mutex> lock(g_mutex); // NOLINT
             exit( EXIT_FAILURE ); // NOLINT
         }
     }
@@ -179,7 +179,7 @@ void Fighter::SetRole(const ROLE_t role) noexcept
     {
         std::cout << "\033[31m\nError in file '" << __FILE__ << "' line " 
                   << __LINE__ << ": unknown fighter role!\n\033[0m";
-        std::lock_guard<std::mutex> lock(g_mutex);
+        std::lock_guard<std::mutex> lock(g_mutex); // NOLINT
         exit( EXIT_FAILURE ); // NOLINT
     }
 

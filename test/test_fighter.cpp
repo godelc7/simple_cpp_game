@@ -190,7 +190,16 @@ TEST(Fighter, Attack)
 
     fh_1.Attack(fo_1);
     const std::string term_out = testing::internal::GetCapturedStdout();
-    std::string to_test = "\033[32mHero hits Orc. \n\033[0m";
+
+    // Clang-tidy would complain about initializing a string without explicitly 
+    // passing all arguments, also the default ones. In this case, the default
+    // template argument is the allocator for string: std::allocator<char>()
+    // Here is the initialization that clang-tidy would like to see:
+    // std::string to_test = {
+    //     "\033[32mHero hits Orc. \n\033[0m",
+    //     std::allocator<char>()
+    // }
+    std::string to_test = "\033[32mHero hits Orc. \n\033[0m"; // NOLINT
 
     EXPECT_EQ(term_out, to_test);
 
