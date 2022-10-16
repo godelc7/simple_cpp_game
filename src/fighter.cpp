@@ -6,12 +6,12 @@ std::mutex g_mutex; // NOLINT --> deactivate all clang-tidy checks on this line
 //
 //  Constructor
 //
-Fighter::Fighter() noexcept
-    : m_role( ROLE::ROLE_UNDEFINED ),
-      m_health( START_HEALTH::HEALTH_UNDEFINED )
-{
+//Fighter::Fighter() noexcept
+//    : m_role( ROLE::ROLE_UNDEFINED ),
+//      m_health( START_HEALTH::HEALTH_UNDEFINED )
+//{
     //std::cout << "\nDefault constructor!!!\n";
-}
+//}
 
 //-----------------------------------------------------------------------------
 //
@@ -65,9 +65,6 @@ Fighter& Fighter::operator=(const Fighter& other) noexcept
     if(&other == this){
         return *this;
     }
-    //if(this != nullptr){
-    //    this->Reset();
-    //}
     m_role = other.GetRole();
     m_health = other.GetHealth();
     return *this;
@@ -106,19 +103,10 @@ const char* Fighter::RoleToString() const noexcept
 {
     switch(m_role)
     {
-        case ROLE_UNDEFINED: return "Undefined";
-        case ROLE_HERO:      return "Hero";
-        case ROLE_ORC:       return "Orc";
-        case ROLE_DRAGON:    return "Dragon";
-        default:  {
-            std::cout << "\033[31m\nError in file '" << __FILE__ << "' line "
-                      << __LINE__ << ": unknown fighter role!\n\033[0m";
-            //Avoid concurrent call to exit() by using 
-            //std::lock_guard<std::mutex>: it is an RAII aware mutex
-            //that is therefore automaticaly unlocked when going out of scope
-            std::lock_guard<std::mutex> lock(g_mutex); // NOLINT
-            exit( EXIT_FAILURE ); // NOLINT
-        }
+        case ROLE_HERO:   return "Hero";
+        case ROLE_ORC:    return "Orc";
+        case ROLE_DRAGON: return "Dragon";
+        default:          return "Undefined";
     }
 }
 
@@ -129,19 +117,22 @@ const char* Fighter::RoleToString() const noexcept
 //
 ROLE_t Fighter::IntToRole(const int role) noexcept
 {
-    if(role < -1){
+    if(role <= -1){
         return ROLE_UNDEFINED;
     }
 
     switch(role)
     {
-        case -1: return ROLE_UNDEFINED;
+        //case -1: return ROLE_UNDEFINED;
         case 0:  return ROLE_HERO;
         case 1:  return ROLE_ORC;
         case 2:  return ROLE_DRAGON;
         default: {
             std::cout << "\033[31m\nError in file '" << __FILE__ << "' line "
                       << __LINE__ << ": unknown fighter role!\n\033[0m";
+            //Avoid concurrent call to exit() by using 
+            //std::lock_guard<std::mutex>: it is an RAII aware mutex
+            //that is therefore automaticaly unlocked when going out of scope
             std::lock_guard<std::mutex> lock(g_mutex); // NOLINT
             exit( EXIT_FAILURE ); // NOLINT
         }
@@ -175,25 +166,12 @@ void Fighter::Print() const noexcept
 //
 void Fighter::SetRole(const ROLE_t role) noexcept
 {
-    if(role > ROLE_DRAGON)
-    {
-        std::cout << "\033[31m\nError in file '" << __FILE__ << "' line " 
-                  << __LINE__ << ": unknown fighter role!\n\033[0m";
-        std::lock_guard<std::mutex> lock(g_mutex); // NOLINT
-        exit( EXIT_FAILURE ); // NOLINT
-    }
-
-    this->m_role = role <= ROLE_UNDEFINED ? ROLE_UNDEFINED :  role;
+    this->m_role = (role <= ROLE_UNDEFINED) ? ROLE_UNDEFINED : role;
 }
 
 void Fighter::SetRole(const int role_int) noexcept
 {
-    if(role_int < -1){
-        SetRole(ROLE_UNDEFINED);
-    }
-    else{
-        SetRole( this->IntToRole(role_int) );
-    }
+    SetRole( this->IntToRole(role_int) );
 }
 
 

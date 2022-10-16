@@ -62,10 +62,8 @@ public:
      * @brief Default Constructor
      *
      * A constructor for creating a fighter.
-     *
-     * @return A reference to the new created fighter
      */
-    explicit Fighter() noexcept;
+    explicit Fighter() noexcept = default;
 
     /**
      * @brief Constructor from role
@@ -73,7 +71,6 @@ public:
      * A constructor for creating a fighter from its role.
      *
      * @param role the role of the fighter to be created
-     * @return A reference to the new created fighter
      */
     explicit Fighter(ROLE_t role) noexcept;
 
@@ -83,7 +80,6 @@ public:
      * A constructor for creating a fighter from its role.
      *
      * @param role_int the role of the fighter to be created
-     * @return A reference to the new created fighter
      */
     explicit Fighter(const int role_int) noexcept 
     : Fighter{ IntToRole(role_int) }{};
@@ -94,7 +90,6 @@ public:
      * A copy constructor for initializing a fighter from another.
      *
      * @param other the fighter from which values are copied
-     * @return A reference to the new created fighter
      */
     Fighter(const Fighter& other) noexcept;
 
@@ -105,7 +100,6 @@ public:
      * Note that the other is reset after move operation
      *
      * @param other the fighter from which values are moved
-     * @return A reference to the new created fighter
      */
     Fighter(Fighter&& other) noexcept;
 
@@ -183,7 +177,6 @@ public:
      * Set the number of health points for the fighter to the given number
      *
      * @param health_points the health points to be set
-     * @return The health points of the fighter
      */
     inline void SetHealth(const int health_points) noexcept { 
         this->m_health = health_points; 
@@ -262,13 +255,12 @@ public:
      * The main method to attack an enemy
      *
      * @param other the fighter to be attacked
-     * @return nothing
      */
     virtual void Attack(Fighter& other) const noexcept;
 
 private:
-    ROLE_t m_role;
-    int m_health;
+    ROLE_t m_role{ROLE::ROLE_UNDEFINED};
+    int m_health{START_HEALTH::HEALTH_UNDEFINED};
 };
 
 
@@ -297,7 +289,6 @@ public:
      * The main method to attack an enemy
      *
      * @param other the fighter to be attacked
-     * @return nothing
      */
     void Attack(Fighter& other) const noexcept override;
 
@@ -328,7 +319,6 @@ public:
      * The main method to attack an enemy
      *
      * @param other the fighter to be attacked
-     * @return nothing
      */
     void Attack(Fighter& other) const noexcept override;
 
@@ -364,7 +354,6 @@ public:
  * This class implements special methods for Dragon.
  */
 class Dragon : public Monster {
-
 public:
     void Attack(Fighter& other) const noexcept final{ 
         other.Print(); // Not yet implemented

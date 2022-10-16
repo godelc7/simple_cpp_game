@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.10)
 
 # Comment out this part if you want to use the GNU toolchain instead
-set(CMAKE_C_COMPILER clang.exe)
-set(CMAKE_CXX_COMPILER clang++.exe)
+#set(CMAKE_C_COMPILER clang.exe)
+#set(CMAKE_CXX_COMPILER clang++.exe)
 
+# ======================== Some basic definitions ==============================
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     add_compile_options (-fdiagnostics-color=always)
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
@@ -25,15 +26,16 @@ elseif((CMAKE_BUILD_TYPE STREQUAL Debug) OR
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
+project("Basic Game")
 
-project(basic_game)
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
-#------------ COMPILER WARNINGS DEFINITIONS ---------- 
+
+# =========================== Compiler Warnings ================================
 # COMPILER_WARNING_BASIC: a reasonable set of warnings: should be alway used
 # COMPILER_WARNING_EXTENDED: an extended set of warnings, 
 #     This can be too much, carefully check if all required
 # COMPILER_WARNING_STRICT: only contains '-Werror' which treat warning as error
-#-----------------------------------------------------
 
 if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR 
    (CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
@@ -61,11 +63,13 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")  # Visual Studio C++
     add_compile_options(${COMPILER_WARNING_BASIC} ${COMPILER_WARNING_EXTENDED})
 endif()
 
-#------------ BASIC COMPILE OPTIONS ------------
+
+# ========================= Basic compile options ==============================
 set(DEBUG_OPTIONS -O0 -g)
 set(REALESE_OPTIONS -O3)
 
-#------------ SANITIZER DEFINITIONS ---------- 
+
+# ========================= SANITIZER DEFINITIONS ==============================
 set(SANITIZER_BASIC_OPTIONS 
     -fno-omit-frame-pointer -fno-optimize-sibling-calls 
     -fsanitize-address-use-after-scope
@@ -87,7 +91,6 @@ else()
     )
 endif()
 
-
 if((CMAKE_BUILD_TYPE STREQUAL Debug) OR 
    (CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo))
     add_compile_options(${DEBUG_OPTIONS} ${ALL_SANITIZERS})
@@ -96,9 +99,8 @@ else()
     add_compile_options(${REALESE_OPTIONS})
 endif()
 
-include_directories(${CMAKE_SOURCE_DIR}/include)
 
-# ===================== Processor cores ===========================
+# ============================== Processor cores ===============================
 include(ProcessorCount)
 ProcessorCount(N)
 if(NOT N EQUAL 0)
@@ -109,7 +111,8 @@ else()
     message(STATUS "Calling 'ProcessorCount()' failed: Using only 1 core")
 endif()
 
-#====================== OpenMP ====================================
+
+#=============================== OpenMP ========================================
 find_package(OpenMP REQUIRED)
 if(OpenMP_CXX_FOUND)
     add_compile_options(${OpenMP_CXX_FLAGS})
@@ -117,7 +120,16 @@ if(OpenMP_CXX_FOUND)
 endif()
 
 
-# ====================== CPPCHECK ============================================
+#=========================== SOURCE CODE FILES =================================
+file(GLOB ALL_HEADER_FILES ${PROJECT_SOURCE_DIR}/include/*.h)
+file(GLOB ALL_CPP_FILES 
+    ${PROJECT_SOURCE_DIR}/src/*.cpp 
+    ${PROJECT_SOURCE_DIR}/test/*.cpp
+)
+set(ALL_SOURCES ${ALL_HEADER_FILES} ${ALL_CPP_FILES})
+
+
+# ================================ CPPCHECK ====================================
 find_program(CPPCHECK_BIN NAMES cppcheck DOC "Path to the cppcheck executable")
 
 if(CPPCHECK_BIN)
@@ -131,23 +143,23 @@ if(CPPCHECK_BIN)
     message(STATUS "Found CppCheck: ${CPPCHECK_BIN} \
     (found version '${CPPCHECK_VERSION}')")
 
-    set(CPPCHECK_THREADS_ARG "-j${NUMBER_PROCS}" 
+    set(CPPCHECK_THREADS_ARG -j${NUMBER_PROCS} 
         CACHE STRING "The number of threads to use for cppcheck"
     )
     set(CPPCHECK_PROJECT_ARG 
-        "--project=${PROJECT_BINARY_DIR}/compile_commands.json"
+        --project=${PROJECT_BINARY_DIR}/compile_commands.json
         CACHE STRING 
         "The project file to use for cppcheck, e.g clang compilation database"
     )
     set(CPPCHECK_BUILD_DIR_ARG 
-        "--cppcheck-build-dir=${PROJECT_BINARY_DIR}/analysis/cppcheck"
+        --cppcheck-build-dir=${PROJECT_BINARY_DIR}/analysis/cppcheck
         CACHE STRING 
         "The cppcheck working folder for check results and cppcheck caching"
     )
-    
+
     if(EXISTS "${CMAKE_SOURCE_DIR}/cppcheck-suppressions")
         set(CPPCHECK_SUPPRESSIONS_ARG 
-            "--suppressions-list=${CMAKE_SOURCE_DIR}/cppcheck-suppressions"
+            --suppressions-list=${CMAKE_SOURCE_DIR}/cppcheck-suppressions
             CACHE STRING 
             "The file defining warnings to be removed from cppcheck results"
         )
@@ -160,58 +172,69 @@ if(CPPCHECK_BIN)
 
     if(EXISTS "${CMAKE_SOURCE_DIR}/cppcheck-exitcode-suppressions")
         set(CPPCHECK_EXITCODE_SUPPRESSIONS 
-            "--exitcode-suppressions=${CMAKE_SOURCE_DIR}/cppcheck-exitcode-suppressions"
+            --exitcode-suppressions=${CMAKE_SOURCE_DIR}/cppcheck-exitcode-suppressions
             CACHE STRING 
-            "The file defining exitcode suppressions. For these errors, \
+            "The file defining exit code suppressions. For these errors, \
             cppcheck will display a message but will cause an error exit"
         )
     else()
         set(CPPCHECK_EXITCODE_SUPPRESSIONS ""
             CACHE STRING 
-            "The file defining exitcode suppressions. For these errors, \
+            "The file defining exit code suppressions. For these errors, \
             cppcheck will display a message but will cause an error exit"
         )
     endif()
 
-    set(CPPCHECK_ERROR_EXITCODE_ARG "--error-exitcode=0"
+    set(CPPCHECK_ERROR_EXITCODE_ARG --error-exitcode=0
         CACHE STRING 
-        "The exitcode to use by cppcheck if warning/errors are found. \
+        "The exit code to use by cppcheck if warning/errors are found. \
         By using a number different from zero(0), warnings are treated as errors"
     )
-    set(CPPCHECK_CPP_STANDARD_ARG "--std=c++17"
+    set(CPPCHECK_LANGUAGE_ARG --language=c++
+        CACHE STRING 
+        "Forces cppcheck to analyze all files as the given programming language, \
+        Possible values are c, c++"
+    )
+    set(CPPCHECK_CPP_STANDARD_ARG --std=c++17
         CACHE STRING 
         "The C/C++ standard to use. Possible values: c89, c99, c11, c++03, \
         c++11, c++14, c++17, c++20(default)"
     )
-    set(CPPCHECK_ENABLE_ARGS "--enable=all"
+    set(CPPCHECK_ENABLE_ARGS --enable=all
         CACHE STRING "Additional checks to be enabled by cppcheck"
     )
-    set(CPPCHECK_INCLUDE_PATHS "-I${CMAKE_SOURCE_DIR}/include"
+    set(CPPCHECK_INCLUDE_PATHS -I${CMAKE_SOURCE_DIR}/include
         CACHE STRING 
         "List of include paths cppcheck uses. Each path is prepended by '-I'"
     )
     set(CPPCHECK_OTHER_ARGS 
-        "--force" "--suppress=missingIncludeSystem" "--suppress=unmatchedSuppression"
-        CACHE STRING "List of other usefull cppcheck arguments"
+        --force --suppress=missingIncludeSystem --suppress=unmatchedSuppression
+        CACHE STRING "List of other useful cppcheck arguments"
     )
     
     set(CPPCHECK_ALL_ARGS 
-        ${CPPCHECK_THREADS_ARG}        ${CPPCHECK_BUILD_DIR_ARG} 
+        #${CPPCHECK_THREADS_ARG}        
+        ${CPPCHECK_BUILD_DIR_ARG} 
         ${CPPCHECK_SUPPRESSIONS_ARG}   ${CPPCHECK_EXITCODE_SUPPRESSIONS}
         ${CPPCHECK_ERROR_EXITCODE_ARG} ${CPPCHECK_ENABLE_ARGS}
-        ${CPPCHECK_CPP_STANDARD_ARG}   ${CPPCHECK_INCLUDE_PATHS} 
-        ${CPPCHECK_OTHER_ARGS}
+        ${CPPCHECK_LANGUAGE_ARG}       ${CPPCHECK_CPP_STANDARD_ARG}
+        ${CPPCHECK_INCLUDE_PATHS}      ${CPPCHECK_OTHER_ARGS}
     )
 
     file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/analysis/cppcheck)
 
-    foreach(arg IN LISTS CPPCHECK_BIN CPPCHECK_ALL_ARGS)
-        list(APPEND CMAKE_CXX_CPPCHECK ${arg})
+    foreach(arg IN LISTS CPPCHECK_BIN CPPCHECK_ALL_ARGS CMAKE_CXX_FLAGS ALL_SOURCES)
+        list(APPEND CPPCHECK_COMMAND ${arg})
     endforeach()
+
+    add_custom_target(Cppcheck_analysis ALL
+        COMMAND ${CPPCHECK_COMMAND}
+        COMMENT "Running Cppcheck static analysis: ${CPPCHECK_COMMAND}"
+    )
 endif()
 
 
-# ====================== CLANG-TIDY ============================================
+# =============================== CLANG-TIDY ===================================
 find_program(CLANG_TIDY_BIN 
     NAMES clang-tidy 
     DOC "Path to the clang-tidy executable"
@@ -221,7 +244,9 @@ if(CLANG_TIDY_BIN)
     message(STATUS "Found Clang-tidy: ${CLANG_TIDY_BIN}")
 
     set(CLANG_TIDY_EXTRA_ARGS 
-        "--extra-arg=-I${CMAKE_SOURCE_DIR}/include" "--extra-arg=-std=c++17"
+        --extra-arg=-I${CMAKE_SOURCE_DIR}/include --extra-arg=-std=c++17
+        #--extra-arg=-Wno-unknown-warning-option
+        #--extra-arg=-Wunknown-argument
         CACHE STRING 
         "Additional argument to append to the compiler command line"
     )
@@ -230,20 +255,23 @@ if(CLANG_TIDY_BIN)
         "The folder in which clang-tidy searches for a \
         compile commmand database (compile_commands.json)"
     )
-    set(CLANG_TIDY_COLOR_ARGS "--use-color"
+    set(CLANG_TIDY_COLOR_ARGS --use-color
         CACHE STRING "Use colors in clang-tidy diagnostics results"
     )
     set(CLANG_TIDY_HEADER_FILTER_ARGS 
-        "--header-filter=${CMAKE_SOURCE_DIR}/include/*"
+        --header-filter=${CMAKE_SOURCE_DIR}/include/*
         CACHE STRING 
         "Header files matching this regular expression will be checked too"
     )
-    set(CLANG_TIDY_CHECKS_ARG 
-        "--checks=*,-llvmlibc-restrict-system-libc-headers,-llvm-include-order\
-        ,-llvmlibc-callee-namespace,-modernize-use-trailing-return-type\
-        ,-llvmlibc-implementation-in-namespace"
-        CACHE STRING 
-        "Comma separated list of checks(reg. expressions) that \
+    string(CONCAT CHECKS_ARG "--checks=*," 
+        "-llvmlibc-restrict-system-libc-headers,"
+        "-llvm-include-order,"
+        "-llvmlibc-callee-namespace,"
+        "-modernize-use-trailing-return-type,"
+        "-llvmlibc-implementation-in-namespace"
+    )
+    set(CLANG_TIDY_CHECKS_ARG ${CHECKS_ARG}
+        CACHE STRING "Comma separated list of checks(reg. expressions) that \
         are enabled. Checks prefixed with '-' are deactivated"
     )
     
@@ -252,76 +280,25 @@ if(CLANG_TIDY_BIN)
         ${CLANG_TIDY_HEADER_FILTER_ARGS} ${CLANG_TIDY_CHECKS_ARG}
     )
 
-    foreach(arg IN LISTS CLANG_TIDY_CMD_LINE)
-        list(APPEND CMAKE_CXX_CLANG_TIDY ${arg})
+    foreach(arg IN LISTS CLANG_TIDY_CMD_LINE CMAKE_CXX_FLAGS ALL_SOURCES)
+        list(APPEND CLANG_TIDY_COMMAND ${arg})
     endforeach()
+
+    add_custom_target(Clang_tidy_analysis ALL
+        COMMAND ${CLANG_TIDY_COMMAND}
+        COMMENT "Running Clang-tidy static analysis: ${CLANG_TIDY_COMMAND}"
+    )
 endif()
 
 
 # ======================== TARGET: basic_game =================================
 add_executable(basic_game src/main.cpp include/fighter.h src/fighter.cpp)
-target_include_directories(basic_game PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-
-
-# ======================== DOXYGEN ============================================
-find_package(Doxygen)
-
-if(DOXYGEN_FOUND)
-    add_custom_target(
-      doc
-      COMMAND ${DOXYGEN_EXECUTABLE} >> doxygen_output && cd latex && make >> doxygen_output
-      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
-      COMMENT "Generating API documentation with Doxygen"
-      VERBATIM
-    )
-else()
-    message(WARNING "Doxygen not found, unable to generate documentation")
-endif()
-
-
-# ======================== TARGET: distclean =================================
-ADD_CUSTOM_TARGET (distclean)
-SET(DISTCLEANED
-    CTestTestfile.cmake *basic_game* runTests
-    CMakeFiles html latex CMakeCache.txt CMakeDoxyfile.in
-    CMakeDoxygenDefaults.cmake cmake_install.cmake  doxygen_output Makefile
+target_include_directories(
+    basic_game 
+    PRIVATE "${PROJECT_SOURCE_DIR}/include"
 )
 
-ADD_CUSTOM_COMMAND(
-    DEPENDS clean
-    COMMENT "cleaning distribution"
-    COMMAND rm
-    ARGS    -Rf CMakeTmp ${DISTCLEANED}
-    TARGET  distclean
-)
-
-
-# ======================== TARGET: Testing =================================
-enable_testing()
-
-find_package(GTest REQUIRED)
-
-find_package(Threads)
-if(Threads_FOUND)
-    set(THREADS_LINKER_FLAG Threads::Threads)
-else()
-    set(THREADS_LINKER_FLAG pthread)
-endif()
-
-
-add_executable(runTests test/test_fighter.cpp include/fighter.h src/fighter.cpp)
-#set(CMAKE_CXX_FLAGS)
-target_include_directories(runTests PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/include ${GTEST_INCLUDE_DIRS}
-)
-target_link_libraries(runTests 
-    ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} 
-    ${THREADS_LINKER_FLAG}
-)
-add_test(NAME "Complete_tests" COMMAND runTests ARGS --gtest_color=yes)
-
-
-# ================ TARGET: Python extension with SWIG ===================
+# ===================== TARGET: Python extension with SWIG =====================
 cmake_policy(SET CMP0078 NEW)
 cmake_policy(SET CMP0086 NEW)
 find_package(SWIG)
@@ -337,7 +314,6 @@ if(SWIG_FOUND AND Python_FOUND)
     INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
     SET(CMAKE_SWIG_FLAGS "")
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Wall -Wextra -std=c++17")
 
     SET_SOURCE_FILES_PROPERTIES(include/fighter.i PROPERTIES CPLUSPLUS ON)
     SWIG_ADD_LIBRARY(basic_game_swig 
@@ -345,9 +321,134 @@ if(SWIG_FOUND AND Python_FOUND)
         SOURCES include/fighter.i src/fighter.cpp
     )
     SWIG_LINK_LIBRARIES(basic_game_swig ${PYTHON_LIBRARIES})
+
+    # deactivate warnings in compilation of python extensions
+    get_property(flags TARGET basic_game_swig PROPERTY COMPILE_OPTIONS)
+    list(REMOVE_ITEM flags 
+        ${COMPILER_WARNING_BASIC} 
+        ${COMPILER_WARNING_EXTENDED}
+    )
+    set_target_properties( 
+        basic_game_swig PROPERTIES COMPILE_OPTIONS ${flags}
+    )
 else()
     message(WARNING 
         "SWIG and/or Python not found, unable to generate python interface")
 endif()
 
 
+# ======================== TARGET: Testing =================================
+enable_testing()
+
+find_package(GTest REQUIRED)
+
+find_package(Threads)
+if(Threads_FOUND)
+    set(THREADS_LINKER_FLAG Threads::Threads)
+else()
+    set(THREADS_LINKER_FLAG pthread)
+endif()
+
+add_executable(runTests test/test_fighter.cpp include/fighter.h src/fighter.cpp)
+target_include_directories(runTests PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/include ${GTEST_INCLUDE_DIRS}
+)
+target_link_libraries(runTests 
+    ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} 
+    ${THREADS_LINKER_FLAG}
+)
+add_test(NAME "Complete_tests" COMMAND runTests ARGS --gtest_color=yes)
+
+
+# =========================== TARGET: Coverage test ============================
+LIST(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules")
+
+if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_BUILD_TYPE STREQUAL Debug))
+    if(NOT CMAKE_RC_COMPILER_ID)
+        set(CMAKE_RC_COMPILER_ID "GNU")
+    endif()
+
+    set(COVERAGE_FOLDER  ${PROJECT_BINARY_DIR}/analysis/coverage)
+    file(MAKE_DIRECTORY ${COVERAGE_FOLDER})
+
+    set(COVERAGE_EXTERNAL_HEADERS
+        # google test headers:
+        *gtest*
+        # system headers:
+        *mingw64*
+        *c++*
+    )
+    set(COVERAGE_EXCLUDES
+        # project files:
+        ${PROJECT_SOURCE_DIR}/include/fighter.i
+        ${PROJECT_SOURCE_DIR}/src/main.cpp
+        # external stuff
+        ${COVERAGE_EXTERNAL_HEADERS}
+    )
+    #set(CODE_COVERAGE_VERBOSE TRUE CACHE STRING "Do we want verbose coverage check?")
+    include(CodeCoverage)
+    append_coverage_compiler_flags_to_target(runTests)
+    target_link_options(runTests PRIVATE --coverage -lgcov)
+
+    if(NOT MINGW) # gcovr(frontend for gcov) is not available under MINGW
+        setup_target_for_coverage_gcovr_html(
+            NAME runTestsCoverageHtml
+            EXECUTABLE runTests
+            DEPENDENCIES runTests
+            BASE_DIRECTORY ${PROJECT_SOURCE_DIR}
+        )
+        setup_target_for_coverage_gcovr_xml(
+            NAME runTestsCoverageXml
+            EXECUTABLE runTests
+            DEPENDENCIES runTests
+            BASE_DIRECTORY ${PROJECT_SOURCE_DIR}
+        )
+    endif()
+
+    setup_target_for_coverage_lcov(
+        NAME runTestsCoverageLcov
+        EXECUTABLE runTests
+        DEPENDENCIES runTests
+        BASE_DIRECTORY ${PROJECT_SOURCE_DIR}
+        #EXCLUDE # files to be excluded by lcov
+    )
+endif()
+
+
+# ============================= TARGET: docs ===================================
+find_package(Doxygen)
+
+if(DOXYGEN_FOUND)
+    set(DOXYGEN_GENERATE_HTML  YES)
+    set(DOXYGEN_GENERATE_LATEX NO)
+    set(DOXYGEN_GENERATE_MAN   NO)
+    set(DOXYGEN_PROJECT_NAME  ${CMAKE_PROJECT_NAME})
+    set(DOXYGEN_EXCLUDE_PATTERNS 
+        ${PROJECT_BINARY_DIR} 
+        ${PROJECT_SOURCE_DIR}/cmake_modules
+    )
+    doxygen_add_docs(
+        docs
+        ${PROJECT_SOURCE_DIR}
+        COMMENT "Generating Doxygen documentation"
+    )
+else()
+    message(WARNING "Doxygen not found, unable to generate documentation")
+endif()
+
+
+# ========================== TARGET: distclean =================================
+ADD_CUSTOM_TARGET (distclean)
+SET(DISTCLEANED
+    CTestTestfile.cmake *basic_game* runTests
+    CMakeFiles html latex CMakeCache.txt CMakeDoxyfile.in
+    CMakeDoxygenDefaults.cmake cmake_install.cmake  doxygen_output Makefile
+)
+
+ADD_CUSTOM_COMMAND(
+    DEPENDS clean
+    COMMENT "cleaning distribution"
+    COMMAND rm
+    ARGS    -Rf CMakeTmp ${DISTCLEANED}
+    TARGET  distclean
+)

@@ -45,8 +45,8 @@ TEST(Fighter, CopyConstructor)
 
 TEST(Fighter, MoveConstructor)
 {
-    //auto f = Fighter(0);
-    auto f_move( Fighter(0) );
+    auto f00 = Fighter(0);
+    auto f_move(std::move(f00));
 
     EXPECT_EQ(f_move.GetRole(), ROLE_HERO);
     EXPECT_EQ(f_move.GetHealth(), HEALTH_HERO);
@@ -55,7 +55,9 @@ TEST(Fighter, MoveConstructor)
 TEST(Fighter, CopyAssignmentOperator)
 {
     auto f11 = Fighter(0);
-    auto f_copy = f11;
+    f11 = f11; // NOLINT copy on myself should return *this
+    Fighter f_copy;
+    f_copy = f11;
 
     EXPECT_EQ(f_copy.GetRole(), ROLE_HERO);
     EXPECT_EQ(f_copy.GetHealth(), HEALTH_HERO);
@@ -64,7 +66,9 @@ TEST(Fighter, CopyAssignmentOperator)
 
 TEST(Fighter, MoveAssignmentOperator)
 {
-    auto f_move = Fighter(0);
+    auto f00 = Fighter(0);
+    Fighter f_move;
+    f_move = std::move(f00);
 
     EXPECT_EQ(f_move.GetRole(), ROLE_HERO);
     EXPECT_EQ(f_move.GetHealth(), HEALTH_HERO);
@@ -90,12 +94,6 @@ TEST(Fighter, SetterMethods)
     f11.SetRole(2);
     EXPECT_EQ(f11.GetRole(), ROLE_DRAGON);
     EXPECT_EQ(f11.GetHealth(), HEALTH_ORC);
-
-    //TODO(Godel): set the role to any value larger than ROLE_DRAGON 
-    //in order to trigger an error and catch it
-    //f.SetRole(3);
-    //EXPECT_EQ(f.GetRole(), ROLE_DRAGON);
-    //EXPECT_EQ(f.GetHealth(), HEALTH_ORC);
 }
 
 TEST(Fighter, IsAlive)
@@ -161,13 +159,11 @@ TEST(Fighter, RoleToString)
     EXPECT_EQ(std::strcmp(fh_1.RoleToString(), "Hero"), 0);
     EXPECT_EQ(std::strcmp(fo_1.RoleToString(), "Orc"), 0);
     EXPECT_EQ(std::strcmp(fd_1.RoleToString(), "Dragon"), 0);
-
-    //TODO(Godel): check role with any value larger than ROLE_DRAGON in order 
-    //to trigger an error and catch it
 }
 
 TEST(Fighter, IntToRole)
 {
+    testing::internal::CaptureStdout();
     const Fighter f_1;
 
     EXPECT_EQ(f_1.IntToRole(-2), ROLE_UNDEFINED);
@@ -176,8 +172,34 @@ TEST(Fighter, IntToRole)
     EXPECT_EQ(f_1.IntToRole(1),  ROLE_ORC);
     EXPECT_EQ(f_1.IntToRole(2),  ROLE_DRAGON);
 
-    //TODO(Godel): check role with any value larger than ROLE_DRAGON in order 
-    //to trigger an error and catch it
+    EXPECT_EXIT(
+        f_1.IntToRole(3), 
+        testing::ExitedWithCode(EXIT_FAILURE),
+        "" // I don't care about the actual error message beeing generated
+    );
+    testing::internal::GetCapturedStdout();
+}
+
+TEST(Fighter, Print){
+    auto f11 = Fighter(ROLE::ROLE_HERO);
+    f11.SetHealth(START_HEALTH::HEALTH_DEAD);
+    //auto f2 = Fighter(ROLE::ROLE_DRAGON);
+
+    testing::internal::CaptureStdout();
+    f11.Print();
+    auto out = testing::internal::GetCapturedStdout();
+    std::string expected{"Fighter information:\n\tRole: 'Hero'\n\t"}; // NOLINT
+    expected += "Remaining health: 0\033[31m  -->  Fighter death!!!\033[0m\n";
+    EXPECT_EQ(out, expected);
+
+    testing::internal::CaptureStdout();
+    auto f22 = Fighter(ROLE::ROLE_UNDEFINED);
+    f22.Print();
+    out = testing::internal::GetCapturedStdout();
+    expected = "Fighter information:\n\tRole: 'Undefined'\n\t";
+    expected += "Remaining health: -1";
+    expected += "\033[31m  -->  Fighter not initialized\033[0m\n";
+    EXPECT_EQ(out, expected);
 }
 
 
