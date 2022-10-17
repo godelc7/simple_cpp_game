@@ -30,6 +30,12 @@ project("Basic Game")
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+# Prohibit in-source builds
+if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
+    message(FATAL_ERROR "In-source build is not allowed. Make sure to create \
+    a build directory and call cmake from there")
+endif()
+
 
 # =========================== Compiler Warnings ================================
 # COMPILER_WARNING_BASIC: a reasonable set of warnings: should be alway used
@@ -247,13 +253,14 @@ if(CLANG_TIDY_BIN)
         --extra-arg=-I${CMAKE_SOURCE_DIR}/include --extra-arg=-std=c++17
         #--extra-arg=-Wno-unknown-warning-option
         #--extra-arg=-Wunknown-argument
+        #--extra-arg=-Qunused-arguments
         CACHE STRING 
         "Additional argument to append to the compiler command line"
     )
     set(CLANG_TIDY_BUILD_PATH_ARGS "-p" "${PROJECT_BINARY_DIR}/"
         CACHE STRING 
-        "The folder in which clang-tidy searches for a \
-        compile commmand database (compile_commands.json)"
+        "The folder in which clang-tidy looks for a \
+        compile command database, e.g compile_commands.json"
     )
     set(CLANG_TIDY_COLOR_ARGS --use-color
         CACHE STRING "Use colors in clang-tidy diagnostics results"
@@ -390,20 +397,20 @@ if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_BUILD_TYPE STREQUAL Debug)
     append_coverage_compiler_flags_to_target(runTests)
     target_link_options(runTests PRIVATE --coverage -lgcov)
 
-    if(NOT MINGW) # gcovr(frontend for gcov) is not available under MINGW
-        setup_target_for_coverage_gcovr_html(
-            NAME runTestsCoverageHtml
-            EXECUTABLE runTests
-            DEPENDENCIES runTests
-            BASE_DIRECTORY ${PROJECT_SOURCE_DIR}
-        )
-        setup_target_for_coverage_gcovr_xml(
-            NAME runTestsCoverageXml
-            EXECUTABLE runTests
-            DEPENDENCIES runTests
-            BASE_DIRECTORY ${PROJECT_SOURCE_DIR}
-        )
-    endif()
+    #if(NOT MINGW) # gcovr(frontend for gcov) is not available under MINGW
+    #    setup_target_for_coverage_gcovr_html(
+    #        NAME runTestsCoverageHtml
+    #        EXECUTABLE runTests
+    #        DEPENDENCIES runTests
+    #        BASE_DIRECTORY ${PROJECT_SOURCE_DIR}
+    #    )
+    #    setup_target_for_coverage_gcovr_xml(
+    #        NAME runTestsCoverageXml
+    #        EXECUTABLE runTests
+    #        DEPENDENCIES runTests
+    #        BASE_DIRECTORY ${PROJECT_SOURCE_DIR}
+    #    )
+    #endif()
 
     setup_target_for_coverage_lcov(
         NAME runTestsCoverageLcov
