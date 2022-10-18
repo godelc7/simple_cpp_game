@@ -298,12 +298,27 @@ if(CLANG_TIDY_BIN)
 endif()
 
 
-# ======================== TARGET: basic_game =================================
+# ======================== include-what-you-use ================================
+find_program(iwyu_path NAMES include-what-you-use iwyu iwyu_tool.py)
+if(iwyu_path)
+    message(STATUS "Found include-what-you-use: ${iwyu_path}")
+    set(IWYU_COMMAND ${iwyu_path} --cxx17ns)
+else()
+    message(WARNING "Program 'include-what-you-use' not found")
+endif()
+
+
+# ======================== TARGET: basic_game ==================================
 add_executable(basic_game src/main.cpp include/fighter.h src/fighter.cpp)
 target_include_directories(
     basic_game 
     PRIVATE "${PROJECT_SOURCE_DIR}/include"
 )
+if(iwyu_path)
+    set_property(TARGET basic_game 
+        PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path}
+    )
+endif()
 
 # ===================== TARGET: Python extension with SWIG =====================
 cmake_policy(SET CMP0078 NEW)
@@ -365,6 +380,12 @@ target_link_libraries(runTests
     ${THREADS_LINKER_FLAG}
 )
 add_test(NAME "Complete_tests" COMMAND runTests ARGS --gtest_color=yes)
+
+if(iwyu_path)
+    set_property(TARGET runTests 
+        PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path}
+    )
+endif()
 
 
 # =========================== TARGET: Coverage test ============================

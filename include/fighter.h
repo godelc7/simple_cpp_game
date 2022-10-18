@@ -1,16 +1,16 @@
 #ifndef FIGHTER_H
 #define FIGHTER_H
 
+#ifdef _OPENMP
+    #include <omp.h>
+#endif
+
+#include <chrono>
+#include <iostream>
+#include <mutex>
 #include <string>
 #include <thread>
-#include <chrono>
-#include <mutex>
 #include <utility>
-#include <iostream>
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 #if defined(__GNUC__) || defined(__clang__)
     #define ATTRIBUTE_NO_DISCARD [[nodiscard]]
