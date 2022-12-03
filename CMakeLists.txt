@@ -317,6 +317,7 @@ if(iwyu_path)
         -Xiwyu --transitive_includes_only 
         -Xiwyu --no_fwd_decls
         -Xiwyu --cxx17ns
+        #"-p ${PROJECT_BINARY_DIR}"
     )
 
     foreach(src_file IN LISTS ALL_CPP_FILES)

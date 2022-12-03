@@ -49,7 +49,6 @@
 #endif
 
 
-
 /**
  * @brief Class fighter
  *
@@ -359,5 +358,6 @@ public:
         other.Print(); // Not yet implemented
     };
 };
+
 
 #endif // FIGHTER_H
