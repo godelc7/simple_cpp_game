@@ -374,11 +374,6 @@ target_include_directories(
     basic_game 
     PRIVATE "${PROJECT_SOURCE_DIR}/include"
 )
-#if(IWYU_COMMAND)
-#    set_property(TARGET basic_game 
-#        PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${IWYU_COMMAND}
-#    )
-#endif()
 
 
 # ===================== TARGET: Python extension with SWIG =====================
@@ -443,12 +438,6 @@ target_link_libraries(runTests
     ${THREADS_LINKER_FLAG}
 )
 add_test(NAME "Complete_tests" COMMAND runTests ARGS --gtest_color=yes)
-
-#if(IWYU_COMMAND)
-#    set_property(TARGET runTests 
-#        PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${IWYU_COMMAND}
-#    )
-#endif()
 
 
 # =========================== TARGET: Coverage test ============================
