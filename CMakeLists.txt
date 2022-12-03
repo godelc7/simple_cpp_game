@@ -11,7 +11,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     add_compile_options (-fcolor-diagnostics)
 endif()
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # for clang-tidy
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -26,7 +26,11 @@ elseif((CMAKE_BUILD_TYPE STREQUAL Debug) OR
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
 
-project("Basic Game")
+project(
+    "Basic Game"
+    VERSION "1.0.5"
+    DESCRIPTION "This project implements a simple command line game as a showcase"
+)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
@@ -37,7 +41,51 @@ if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
 endif()
 
 
-# =========================== Compiler Warnings ================================
+# ============================== Processor cores ===============================
+include(ProcessorCount)
+ProcessorCount(N)
+if(NOT N EQUAL 0)
+    set(NUMBER_PROCS ${N})
+    message(STATUS "Found number of physical cores: ${NUMBER_PROCS}")
+else()
+    set(NUMBER_PROCS 1)
+    message(STATUS "Calling 'ProcessorCount()' failed: Using only 1 core")
+endif()
+
+
+#=========================== SOURCE CODE FILES =================================
+file(GLOB ALL_HEADER_FILES ${PROJECT_SOURCE_DIR}/include/*.h)
+file(GLOB ALL_CPP_FILES 
+    ${PROJECT_SOURCE_DIR}/src/*.cpp 
+    ${PROJECT_SOURCE_DIR}/test/*.cpp
+)
+set(ALL_SOURCES ${ALL_HEADER_FILES} ${ALL_CPP_FILES})
+
+
+#=============================== OpenMP ========================================
+find_package(OpenMP REQUIRED)
+if(OpenMP_CXX_FOUND)
+    add_compile_options(${OpenMP_CXX_FLAGS})
+    add_link_options(${OpenMP_CXX_FLAGS})
+endif()
+
+
+# ========================= Basic compile options ==============================
+set(DEBUG_OPTIONS -O0 -g)
+set(RELEASE_OPTIONS -O3)
+
+
+# ==================== Option CLANG_TIDY_ANALYSIS ==============================
+option(
+    CLANG_TIDY_ANALYSIS 
+    "Boolean option whether to use clang-tidy analysis or not. If this option \
+    is set to ON, then the compiler builtin analysis tool is deactivated. \
+    Otherwise the compiler builtin analysis tool is activated."
+    ON
+)
+
+
+# ================ Static analysis : Compiler Warnings =========================
 # COMPILER_WARNING_BASIC: a reasonable set of warnings: should be alway used
 # COMPILER_WARNING_EXTENDED: an extended set of warnings, 
 #     This can be too much, carefully check if all required
@@ -70,72 +118,23 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")  # Visual Studio C++
 endif()
 
 
-# ========================= Basic compile options ==============================
-set(DEBUG_OPTIONS -O0 -g)
-set(REALESE_OPTIONS -O3)
-
-
-# ========================= SANITIZER DEFINITIONS ==============================
-set(SANITIZER_BASIC_OPTIONS 
-    -fno-omit-frame-pointer -fno-optimize-sibling-calls 
-    -fsanitize-address-use-after-scope
-)
-set(ADRESS_SANITIZER_OPTIONS -fsanitize=address)
-set(MEMORY_SANITIZER_OPTIONS -fsanitize=memory)
-set(THREAD_SANITIZER_OPTIONS -fsanitize=thread)
-set(LEAK_SANITIZER_OPTIONS   -fsanitize=leak)
-set(UNDEFINED_BEHAVIOR_SANITIZER_OPTIONS -fsanitize=undefined)
-
-# Sanitizers aren't supported under MINGW
-if(MINGW AND 
-(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
-    set(ALL_SANITIZERS "")
-else()
-    set(ALL_SANITIZERS 
-        ${SANITIZER_BASIC_OPTIONS}  ${ADRESS_SANITIZER_OPTIONS} 
-        ${UNDEFINED_BEHAVIOR_SANITIZER_OPTIONS}
-    )
-endif()
-
-if((CMAKE_BUILD_TYPE STREQUAL Debug) OR 
-   (CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo))
-    add_compile_options(${DEBUG_OPTIONS} ${ALL_SANITIZERS})
-    add_link_options(${ALL_SANITIZERS})
-else()
-    add_compile_options(${REALESE_OPTIONS})
+# ================= Static analysis : builtin analyzer =========================
+# The builtin analyzers also perform a kind of static analysis, but they
+# much more expensive than the compiler warnings, since they use compiler
+# instrumentation and code injection to perform their task. Those are therefore
+# recommended only for debug builds and test purpose.
+if(CMAKE_BUILD_TYPE STREQUAL Debug AND NOT CLANG_TIDY_ANALYSIS)
+    if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND 
+       (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 7.0))
+        set(BUILTIN_ANALYZER_OPTION -fanalyzer)
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        set(BUILTIN_ANALYZER_OPTION /analyze)
+    endif()
+    add_compile_options(${BUILTIN_ANALYZER_OPTION})
 endif()
 
 
-# ============================== Processor cores ===============================
-include(ProcessorCount)
-ProcessorCount(N)
-if(NOT N EQUAL 0)
-    set(NUMBER_PROCS ${N})
-    message(STATUS "Found number of physical cores: ${NUMBER_PROCS}")
-else()
-    set(NUMBER_PROCS 1)
-    message(STATUS "Calling 'ProcessorCount()' failed: Using only 1 core")
-endif()
-
-
-#=============================== OpenMP ========================================
-find_package(OpenMP REQUIRED)
-if(OpenMP_CXX_FOUND)
-    add_compile_options(${OpenMP_CXX_FLAGS})
-    add_link_options(${OpenMP_CXX_FLAGS})
-endif()
-
-
-#=========================== SOURCE CODE FILES =================================
-file(GLOB ALL_HEADER_FILES ${PROJECT_SOURCE_DIR}/include/*.h)
-file(GLOB ALL_CPP_FILES 
-    ${PROJECT_SOURCE_DIR}/src/*.cpp 
-    ${PROJECT_SOURCE_DIR}/test/*.cpp
-)
-set(ALL_SOURCES ${ALL_HEADER_FILES} ${ALL_CPP_FILES})
-
-
-# ================================ CPPCHECK ====================================
+# ====================== Static analysis : CPPCHECK ============================
 find_program(CPPCHECK_BIN NAMES cppcheck DOC "Path to the cppcheck executable")
 
 if(CPPCHECK_BIN)
@@ -240,18 +239,18 @@ if(CPPCHECK_BIN)
 endif()
 
 
-# =============================== CLANG-TIDY ===================================
+# ======================== Static analysis : CLANG-TIDY ========================
 find_program(CLANG_TIDY_BIN 
     NAMES clang-tidy 
     DOC "Path to the clang-tidy executable"
 )
 
-if(CLANG_TIDY_BIN)
+if(CLANG_TIDY_BIN AND CLANG_TIDY_ANALYSIS)
     message(STATUS "Found Clang-tidy: ${CLANG_TIDY_BIN}")
 
     set(CLANG_TIDY_EXTRA_ARGS 
         --extra-arg=-I${CMAKE_SOURCE_DIR}/include --extra-arg=-std=c++17
-        #--extra-arg=-Wno-unknown-warning-option
+        --extra-arg=-Wno-unknown-warning-option
         #--extra-arg=-Wunknown-argument
         #--extra-arg=-Qunused-arguments
         CACHE STRING 
@@ -298,13 +297,74 @@ if(CLANG_TIDY_BIN)
 endif()
 
 
-# ======================== include-what-you-use ================================
+# ================== Static analysis : include-what-you-use ====================
 find_program(iwyu_path NAMES include-what-you-use iwyu iwyu_tool.py)
 if(iwyu_path)
     message(STATUS "Found include-what-you-use: ${iwyu_path}")
-    set(IWYU_COMMAND ${iwyu_path} --cxx17ns)
+    set(iwyu_arguments
+        -std=c++17
+        -I${CMAKE_SOURCE_DIR}/include
+        ${OpenMP_CXX_FLAGS}
+        -Qunused-arguments
+        #-Wunknown-warning-option
+        #-Wunknown-argument
+        -Wno-unknown-warning-option
+        -fno-common
+        -pipe 
+        -fstack-protector-strong 
+        -fdiagnostics-color=always 
+        -fvisibility-inlines-hidden
+        -Xiwyu --transitive_includes_only 
+        -Xiwyu --no_fwd_decls
+        -Xiwyu --cxx17ns
+    )
+
+    foreach(src_file IN LISTS ALL_CPP_FILES)
+        list(
+            APPEND iwyu_commands 
+            COMMAND ${iwyu_path} ${iwyu_arguments} ${src_file}
+        )
+    endforeach(src_file in ALL_CPP_FILES)
+
+    add_custom_target(
+        iwyu_check ALL
+        ${iwyu_commands}
+        COMMENT "Running include-what-you-use check on CPP files with command: \
+        ${iwyu_path} ${iwyu_arguments}"
+    )
 else()
     message(WARNING "Program 'include-what-you-use' not found")
+endif()
+
+
+# ====================== Runtime analysis: SANITIZER ===========================
+set(SANITIZER_BASIC_OPTIONS 
+    -fno-omit-frame-pointer -fno-optimize-sibling-calls 
+    -fsanitize-address-use-after-scope
+)
+set(ADDRESS_SANITIZER_OPTIONS -fsanitize=address)
+set(MEMORY_SANITIZER_OPTIONS -fsanitize=memory)
+set(THREAD_SANITIZER_OPTIONS -fsanitize=thread)
+set(LEAK_SANITIZER_OPTIONS   -fsanitize=leak)
+set(UNDEFINED_BEHAVIOR_SANITIZER_OPTIONS -fsanitize=undefined)
+
+# Sanitizers aren't supported under MINGW
+if(MINGW AND 
+(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
+    set(ALL_SANITIZERS "")
+else()
+    set(ALL_SANITIZERS 
+        ${SANITIZER_BASIC_OPTIONS}  ${ADDRESS_SANITIZER_OPTIONS} 
+        ${UNDEFINED_BEHAVIOR_SANITIZER_OPTIONS}
+    )
+endif()
+
+if((CMAKE_BUILD_TYPE STREQUAL Debug) OR 
+   (CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo))
+    add_compile_options(${DEBUG_OPTIONS} ${ALL_SANITIZERS})
+    add_link_options(${ALL_SANITIZERS})
+else()
+    add_compile_options(${RELEASE_OPTIONS})
 endif()
 
 
@@ -314,11 +374,12 @@ target_include_directories(
     basic_game 
     PRIVATE "${PROJECT_SOURCE_DIR}/include"
 )
-if(iwyu_path)
-    set_property(TARGET basic_game 
-        PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path}
-    )
-endif()
+#if(IWYU_COMMAND)
+#    set_property(TARGET basic_game 
+#        PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${IWYU_COMMAND}
+#    )
+#endif()
+
 
 # ===================== TARGET: Python extension with SWIG =====================
 cmake_policy(SET CMP0078 NEW)
@@ -345,13 +406,15 @@ if(SWIG_FOUND AND Python_FOUND)
     SWIG_LINK_LIBRARIES(basic_game_swig ${PYTHON_LIBRARIES})
 
     # deactivate warnings in compilation of python extensions
-    get_property(flags TARGET basic_game_swig PROPERTY COMPILE_OPTIONS)
-    list(REMOVE_ITEM flags 
+    get_property(compile_flags TARGET basic_game_swig PROPERTY COMPILE_OPTIONS)
+    list(REMOVE_ITEM compile_flags 
         ${COMPILER_WARNING_BASIC} 
         ${COMPILER_WARNING_EXTENDED}
+        ${BUILTIN_ANALYZER_OPTION}
+        ${ALL_SANITIZERS}
     )
     set_target_properties( 
-        basic_game_swig PROPERTIES COMPILE_OPTIONS ${flags}
+        basic_game_swig PROPERTIES COMPILE_OPTIONS "${compile_flags}"
     )
 else()
     message(WARNING 
@@ -381,11 +444,11 @@ target_link_libraries(runTests
 )
 add_test(NAME "Complete_tests" COMMAND runTests ARGS --gtest_color=yes)
 
-if(iwyu_path)
-    set_property(TARGET runTests 
-        PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path}
-    )
-endif()
+#if(IWYU_COMMAND)
+#    set_property(TARGET runTests 
+#        PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${IWYU_COMMAND}
+#    )
+#endif()
 
 
 # =========================== TARGET: Coverage test ============================
