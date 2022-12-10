@@ -274,7 +274,9 @@ if(CLANG_TIDY_BIN AND CLANG_TIDY_ANALYSIS)
         "-llvm-include-order,"
         "-llvmlibc-callee-namespace,"
         "-modernize-use-trailing-return-type,"
-        "-llvmlibc-implementation-in-namespace"
+        "-llvmlibc-implementation-in-namespace,"
+        "-fuchsia-trailing-return,"
+        "-altera-unroll-loops,"
     )
     set(CLANG_TIDY_CHECKS_ARG ${CHECKS_ARG}
         CACHE STRING "Comma separated list of checks(reg. expressions) that \

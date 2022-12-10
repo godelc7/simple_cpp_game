@@ -11,6 +11,7 @@
 #include <string>
 #include <thread>
 #include <utility>
+#include <type_traits>
 
 #if defined(__GNUC__) || defined(__clang__)
     #define ATTRIBUTE_NO_DISCARD [[nodiscard]]
@@ -264,9 +265,6 @@ private:
 
 
 
-
-
-
 /**
  * @brief class Hero
  *
@@ -342,9 +340,10 @@ public:
  */
 class Orc : public Monster {
 public:
-    void Attack(Fighter& other) const noexcept final{ 
+    using Monster::Monster;
+    /*void Attack(Fighter& other) const noexcept final{ 
         other.Print(); // Not yet implemented
-    };
+    };*/
 };
 
 /**
@@ -354,9 +353,10 @@ public:
  */
 class Dragon : public Monster {
 public:
-    void Attack(Fighter& other) const noexcept final{ 
+    using Monster::Monster;
+    /*void Attack(Fighter& other) const noexcept final{ 
         other.Print(); // Not yet implemented
-    };
+    };*/
 };
 
 
