@@ -342,7 +342,8 @@ endif()
 
 # ====================== Runtime analysis: SANITIZER ===========================
 set(SANITIZER_BASIC_OPTIONS 
-    -fno-omit-frame-pointer -fno-optimize-sibling-calls 
+    -fno-omit-frame-pointer 
+    -fno-optimize-sibling-calls 
     -fsanitize-address-use-after-scope
 )
 set(ADDRESS_SANITIZER_OPTIONS -fsanitize=address)
