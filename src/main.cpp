@@ -1,4 +1,8 @@
 #include "fighter.h"
+#include <iostream>
+#include <mutex>
+#include <string>
+#include <thread>
 
 extern std::mutex g_mutex; // NOLINT --> deactivate all clang-tidy for this line
 bool g_game_running{false}; // NOLINT
@@ -21,7 +25,9 @@ void execute_hero_actions(const Hero &hero,
                           Orc &orc, 
                           Dragon &dragon)
 {
-    std::string command_in; // NOLINT
+    // static analyzers may complain about the fact that not all template
+    // arguments were given.
+    std::string command_in;
     std::string command;
 
     while (g_game_running)

@@ -269,14 +269,25 @@ if(CLANG_TIDY_BIN AND CLANG_TIDY_ANALYSIS)
         CACHE STRING 
         "Header files matching this regular expression will be checked too"
     )
-    string(CONCAT CHECKS_ARG "--checks=*," 
-        "-llvmlibc-restrict-system-libc-headers,"
-        "-llvm-include-order,"
-        "-llvmlibc-callee-namespace,"
-        "-modernize-use-trailing-return-type,"
-        "-llvmlibc-implementation-in-namespace,"
-        "-fuchsia-trailing-return,"
-        "-altera-unroll-loops,"
+    # TODO: move all this to a .clang-tidy file --> much cleaner
+    string(CONCAT CHECKS_ARG "--checks=-*,"  # deactivate everything
+        "clang-diagnostic-*,"  # activated per default by clang-tidy
+        "clang-analyzer-*,"    # activated per default by clang-tidy
+        "boost-*,"
+        "bugprone-*,"  # Checks that target bug-prone code constructs
+        "cert-*,"
+        "concurrency-*,"  # Checks related to concurrent programming ( threads, fibers, coroutines, etc.)
+        "cppcoreguidelines-*,"
+        "google-*,"
+        "hicpp-*,"  # Checks related to Google coding conventions.
+        "misc-*,"  # Checks that we didn’t have a better category for
+        "modernize-*," # Checks that advocate usage of modern language constructs
+        "mpi-*,"  # Checks related to MPI (Message Passing Interface)
+        "openmp-*,"  #Checks related to OpenMP API
+        "performance-*,"  # Checks that target performance-related issues
+        "portability-*,"  # Checks that target portability-related issues that don’t relate to any particular coding style
+        "readability-*,"  # Checks that target readability-related issues that don’t relate to any particular coding style
+        "-modernize-use-trailing-return-type,"  # we don't want trailing return warnings
     )
     set(CLANG_TIDY_CHECKS_ARG ${CHECKS_ARG}
         CACHE STRING "Comma separated list of checks(reg. expressions) that \
@@ -300,7 +311,9 @@ endif()
 
 
 # ================== Static analysis : include-what-you-use ====================
-find_program(iwyu_path NAMES include-what-you-use iwyu iwyu_tool.py)
+find_package(Python COMPONENTS Interpreter Development)
+
+find_program(iwyu_path NAMES iwyu_tool.py include-what-you-use iwyu)
 if(iwyu_path)
     message(STATUS "Found include-what-you-use: ${iwyu_path}")
     set(iwyu_arguments
@@ -322,12 +335,21 @@ if(iwyu_path)
         #"-p ${PROJECT_BINARY_DIR}"
     )
 
-    foreach(src_file IN LISTS ALL_CPP_FILES)
-        list(
-            APPEND iwyu_commands 
-            COMMAND ${iwyu_path} ${iwyu_arguments} ${src_file}
+    if(Python_EXECUTABLE AND iwyu_path MATCHES ".*py")
+        set(
+            iwyu_commands
+            ${Python_EXECUTABLE}
+            ${iwyu_path}
+            -p ${PROJECT_BINARY_DIR}
         )
-    endforeach(src_file in ALL_CPP_FILES)
+    else()
+        foreach(src_file IN LISTS ALL_CPP_FILES)
+            list(
+                APPEND iwyu_commands 
+                COMMAND ${python_exec} ${iwyu_path} ${iwyu_arguments} ${src_file}
+            )
+        endforeach(src_file in ALL_CPP_FILES)
+    endif()
 
     add_custom_target(
         iwyu_check ALL
@@ -385,7 +407,6 @@ cmake_policy(SET CMP0078 NEW)
 cmake_policy(SET CMP0086 NEW)
 find_package(SWIG)
 FIND_PACKAGE(PythonLibs)
-find_package(Python COMPONENTS Interpreter Development)
 
 if(SWIG_FOUND AND Python_FOUND)
     INCLUDE(${SWIG_USE_FILE})
@@ -445,6 +466,14 @@ add_test(NAME "Complete_tests" COMMAND runTests ARGS --gtest_color=yes)
 
 
 # =========================== TARGET: Coverage test ============================
+# Coverage test may fail under MinGW because of a Bugs in 'C:\msys64\mingw64\bin\geninfo'
+# Fixes:
+#   line 59: add 'File::Spec;', a class import to be used later on
+#   line 852: replace 'find' with "C:\\msys64\\usr\\bin\\find.exe"
+#   line 2519: add 'my $file_name;', variable definition
+#   line 2525: add '$file_name = basename($file)'
+#   line 2532: comment out the line '$data_file = ...' and put instead
+#              '$data_file = File::Spec->catfile($tempdir, $file_name)'
 LIST(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules")
 
 if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_BUILD_TYPE STREQUAL Debug))

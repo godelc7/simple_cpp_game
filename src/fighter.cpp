@@ -1,4 +1,7 @@
 #include "fighter.h"
+#include <cstdlib>
+#include <iostream>
+#include <mutex>
 
 std::mutex g_mutex; // NOLINT --> deactivate all clang-tidy checks on this line
 
