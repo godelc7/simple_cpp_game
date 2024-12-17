@@ -1,6 +1,10 @@
-#include "fighter.h"
-#include <gtest/gtest.h>
+#include <cstdlib>
 #include <cstring>
+#include <string>
+#include <utility>
+#include "gtest/gtest.h"
+#include "fighter.h"
+
 
 TEST(Fighter, DefaultConstructor)
 {

@@ -1,3 +1,12 @@
+#include <bits/chrono.h>
+#include <cctype>
+#include <cstdlib>
+#include <functional>
+#include <iostream>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <type_traits>
 #include "fighter.h"
 #include <iostream>
 #include <mutex>

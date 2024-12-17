@@ -3,6 +3,13 @@
 %module basic_game
 %{
 // generic includes required to compile the wrapper code
+#include <chrono>
+#include <iostream>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <utility>
+#include <type_traits>
 #include "fighter.h"
 %}
 

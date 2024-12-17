@@ -498,7 +498,7 @@ if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_BUILD_TYPE STREQUAL Debug)
         # external stuff
         ${COVERAGE_EXTERNAL_HEADERS}
     )
-    #set(CODE_COVERAGE_VERBOSE TRUE CACHE STRING "Do we want verbose coverage check?")
+    # set(CODE_COVERAGE_VERBOSE TRUE CACHE STRING "Do we want verbose coverage check?")
     include(CodeCoverage)
     append_coverage_compiler_flags_to_target(runTests)
     target_link_options(runTests PRIVATE --coverage -lgcov)
